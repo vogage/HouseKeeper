@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "webrtc-adapter": "^8.2.3",
+    "websocket": "^1.0.34"
+  },
+  "type": "module"
+
+}
