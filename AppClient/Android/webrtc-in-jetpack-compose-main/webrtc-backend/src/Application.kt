@@ -15,7 +15,10 @@ import java.util.*
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
 @Suppress("unused") // Referenced in application.conf
+// suppress warnings: the variable unused
 @JvmOverloads
+// It instructs the Kotlin compiler to generate overloads for the function or constructor that substitute default parameter values.
+// Java does not support default parameters. It supports overloading
 fun Application.module(testing: Boolean = false) {
 
     install(WebSockets) {
