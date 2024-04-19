@@ -236,6 +236,8 @@ if (!wsServer) {
 // called whenever a user connects to the server's port using the
 // WebSocket protocol.
 
+
+
 wsServer.on('request', function(request) {
   if (!originIsAllowed(request.origin)) {
     request.reject();
@@ -245,11 +247,15 @@ wsServer.on('request', function(request) {
 
   // Accept the request and get a connection.
   
-  var connection = request.accept("json", request.origin);
+  //var connection = request.accept("json", request.origin);
+  var connection = request.accept(request.origin);
 
   // Add the new connection to our list of connections.
 
   log("Connection accepted from " + connection.remoteAddress + ".");
+
+
+
   connectionArray.push(connection);
 
   connection.clientID = nextID;
@@ -273,7 +279,7 @@ wsServer.on('request', function(request) {
 
   connection.on('message', function(message) {
     if (message.type === 'utf8') {
-      log("Received Message: " + message.utf8Data);
+      log("Received Message: " + message.utf8Data+"line: connection on (message)");
 
       // Process incoming data.
 
