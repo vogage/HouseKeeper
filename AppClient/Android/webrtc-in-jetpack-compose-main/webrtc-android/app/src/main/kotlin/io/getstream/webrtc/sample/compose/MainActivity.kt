@@ -51,7 +51,7 @@ class MainActivity : ComponentActivity() {
       peerConnectionFactory = StreamPeerConnectionFactory(this)
     )
 
-    sessionManager.signalingClient.myws.send("hhhhhhhhhhhhhhhhhhhhhhjjjjjjjjjj"); //just test
+    //sessionManager.signalingClient.myws.send("hhhhhhhhhhhhhhhhhhhhhhjjjjjjjjjj"); //just test
 
     setContent {
       WebrtcSampleComposeTheme {

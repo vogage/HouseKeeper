@@ -181,7 +181,7 @@ class WebRtcSessionManagerImpl(
       signalingClient.signalingCommandFlow
         .collect { commandToValue ->
           when (commandToValue.first) {
-            SignalingCommand.OFFER -> handleOffer(commandToValue.second)
+            SignalingCommand.OFFER -> handleOffer(commandToValue.second) //handle the server command
             SignalingCommand.ANSWER -> handleAnswer(commandToValue.second)
             SignalingCommand.ICE -> handleIce(commandToValue.second)
             else -> Unit

@@ -238,6 +238,9 @@ if (!wsServer) {
 
 
 
+
+
+
 wsServer.on('request', function(request) {
   if (!originIsAllowed(request.origin)) {
     request.reject();
@@ -260,6 +263,26 @@ wsServer.on('request', function(request) {
 
   connection.clientID = nextID;
   nextID++;
+
+  // test the send to andriod client
+  
+  //connection.send("jjjjhhhjjjjj");
+
+  // enum class SignalingCommand {
+  //   STATE, // Command for WebRTCSessionState
+  //   OFFER, // to send or receive offer
+  //   ANSWER, // to send or receive answer
+  //   ICE // to send and receive ice candidates
+  // }
+
+  const AndroidMsgType = Object.freeze({
+    STATE: 0,
+    OFFER: 1,
+    ANSWER: 2,
+    ICE:3
+  });
+
+  connection.send("ICEjjjjhhhhhhhhhhhhhhhhhhh");
 
   // Send the new client its token; it send back a "username" message to
   // tell us what username they want to use.
