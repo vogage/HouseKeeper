@@ -19,7 +19,12 @@ object SessionManager {
 
     private var sessionState: WebRTCSessionState = WebRTCSessionState.Impossible
 
-    fun onSessionStarted(sessionId: UUID, session: DefaultWebSocketServerSession) {
+    //webSocket("/rtc") {
+    //    val sessionID = UUID.randomUUID()
+    //    try {
+    //        SessionManager.onSessionStarted(sessionID, this)
+
+    fun onSessionStarted(sessionId: UUID, session: DefaultWebSocketServerSession) {//initial function with sessionID
         sessionManagerScope.launch {
             mutex.withLock {
                 if (clients.size > 1) {
@@ -29,14 +34,19 @@ object SessionManager {
                     return@launch
                 }
                 clients[sessionId] = session
-                session.send("Added as a client: $sessionId")
+                session.send("Added as a client: $sessionId") //asyn send message
                 if (clients.size > 1) {
                     sessionState = WebRTCSessionState.Ready
                 }
-                notifyAboutStateUpdate()
+                notifyAboutStateUpdate() //update the client stage
             }
         }
     }
+
+    //OkHttp http://192.168.12.234:6503/...:42) websocketListener onmessage: STATE Impossible
+    //OkHttp http://192.168.12.234:6503/...:42) Qian received statemessage: STATE Impossible
+    //OkHttp http://192.168.12.234:6503/...:42) websocketListener onmessage: Added as a client: 7643480b-3006-476b-8089-2813e5956468
+
 
     fun onMessage(sessionId: UUID, message: String) {
         when {
@@ -61,6 +71,7 @@ object SessionManager {
         println("handling offer from $sessionId")
         notifyAboutStateUpdate()
         val clientToSendOffer = clients.filterKeys { it != sessionId }.values.first()
+        println("clientToSendOffer $message")
         clientToSendOffer.send(message)
     }
 
@@ -106,6 +117,7 @@ object SessionManager {
     }
 
     private fun notifyAboutStateUpdate() {
+        println("Qian notifyAboutStateUpate ${MessageType.STATE} $sessionState")
         clients.forEach { (_, client) ->
             client.send("${MessageType.STATE} $sessionState")
         }

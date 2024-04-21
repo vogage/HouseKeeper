@@ -62,7 +62,7 @@ class SignalingClient {
   private inner class SignalingWebSocketListener : WebSocketListener() {
     override fun onMessage(webSocket: WebSocket, text: String) {
       logger.d{"websocketListener onmessage: $text"}
-      logger.d{"SignalingCommand.ICE.toString(): ${SignalingCommand.ICE.toString()}"}
+      //logger.d{"SignalingCommand.ICE.toString(): ${SignalingCommand.ICE.toString()}"}
       when {
         text.startsWith(SignalingCommand.STATE.toString(), true) ->
           handleStateMessage(text)
@@ -77,13 +77,14 @@ class SignalingClient {
   }
 
   private fun handleStateMessage(message: String) {
-    val state = getSeparatedMessage(message)
+    logger.d{"Qian received statemessage: $message"}
+    val state = getSeparatedMessage(message)//Impossible
     _sessionStateFlow.value = WebRTCSessionState.valueOf(state)
   }
 
   private fun handleSignalingCommand(command: SignalingCommand, text: String) {
     val value = getSeparatedMessage(text)
-    logger.d { "received signaling: $command   $value" }
+    logger.d {"Qian received signaling: $command   $value" }
     signalingScope.launch {
       _signalingCommandFlow.emit(command to value)
     }

@@ -237,6 +237,34 @@ if (!wsServer) {
 // WebSocket protocol.
 
 
+  // enum class SignalingCommand {
+  //   STATE, // Command for WebRTCSessionState
+  //   OFFER, // to send or receive offer
+  //   ANSWER, // to send or receive answer
+  //   ICE // to send and receive ice candidates
+  // }
+
+const AndroidMsgType = Object.freeze({
+  STATE: "STATE",
+  OFFER: "OFFER",
+  ANSWER: "ANSWER",
+  ICE:"ICE"
+});
+
+// enum class WebRTCSessionState {
+//   Active, // Offer and Answer messages has been sent
+//   Creating, // Creating session, offer has been sent
+//   Ready, // Both clients available and ready to initiate session
+//   Impossible // We have less than two clients
+// }
+const AndroidSessionState=Object.freeze({
+  Active: "Active",
+  Creating: "Creating",
+  Ready: "Ready",
+  Impossible: "Impossible"
+});
+
+
 
 
 
@@ -257,44 +285,39 @@ wsServer.on('request', function(request) {
 
   log("Connection accepted from " + connection.remoteAddress + ".");
 
-
-
   connectionArray.push(connection);
 
   connection.clientID = nextID;
   nextID++;
 
-  // test the send to andriod client
+  var andriod_session_state=AndroidSessionState.Impossible;
   
-  //connection.send("jjjjhhhjjjjj");
+  connection.send(AndroidMsgType.STATE+" "+AndroidSessionState.Impossible);
+  // judge the client num
+  // only support two clients
+  if(connectionArray.length==2){
+    //the session state is ready 
+    andriod_session_state=AndroidSessionState.Ready;
+    connectionArray.forEach(clientConnection => {
+     
+      clientConnection.send(AndroidMsgType.STATE+" "+AndroidSessionState.Ready);
+      log("connection Ready ClientID:  "+clientConnection.clientID)
+    });
+  }
 
-  // enum class SignalingCommand {
-  //   STATE, // Command for WebRTCSessionState
-  //   OFFER, // to send or receive offer
-  //   ANSWER, // to send or receive answer
-  //   ICE // to send and receive ice candidates
+  // private fun handleOffer(sessionId: UUID, message: String) {
+  //   if (sessionState != WebRTCSessionState.Ready) {
+  //       error("Session should be in Ready state to handle offer")
+  //   }
+  //   sessionState = WebRTCSessionState.Creating
+  //   println("handling offer from $sessionId")
+  //   notifyAboutStateUpdate()
+  //   val clientToSendOffer = clients.filterKeys { it != sessionId }.values.first()
+  //   clientToSendOffer.send(message)
   // }
 
-  const AndroidMsgType = Object.freeze({
-    STATE: 0,
-    OFFER: 1,
-    ANSWER: 2,
-    ICE:3
-  });
-
-  connection.send("ICEjjjjhhhhhhhhhhhhhhhhhhh");
-
-  // Send the new client its token; it send back a "username" message to
-  // tell us what username they want to use.
-
-  var msg = {
-    type: "id",
-    id: connection.clientID
-  };
 
 
-  connection.sendUTF(JSON.stringify(msg));
-  connection.sendUTF(msg)
   // Set up a handler for the "message" event received over WebSocket. This
   // is a message sent by a client, and may be text to share with other
   // users, a private message (text or signaling) for one user, or a command
@@ -302,81 +325,62 @@ wsServer.on('request', function(request) {
 
   connection.on('message', function(message) {
     if (message.type === 'utf8') {
-      log("Received Message: " + message.utf8Data+"        line: connection on (message)");
+     // log("Received Message: " + message.utf8Data);
 
+      var msg=message.utf8Data;
+
+      if(msg.startsWith("OFFER")){
       // Process incoming data.
+        log("the message is OFFER");
+        if(andriod_session_state==AndroidSessionState.Ready){
+         
+          andriod_session_state=AndroidSessionState.Creating;
+          log( "send state message Creating");
+          //renew the client state to creating
+          connectionArray.forEach(clientConnection => {
+            
+            clientConnection.send(AndroidMsgType.STATE+" "+AndroidSessionState.Creating);
+            log("connection Creting ClientId: "+ clientConnection.clientID);
+            
+          });
 
-      var sendToClients = true;
-      msg = JSON.parse(message.utf8Data);
-      var connect = getConnectionForID(msg.id);
-
-      // Take a look at the incoming object and act on it based
-      // on its type. Unknown message types are passed through,
-      // since they may be used to implement client-side features.
-      // Messages with a "target" property are sent only to a user
-      // by that name.
-
-      switch(msg.type) {
-        // Public, textual message
-        case "message":
-          msg.name = connect.username;
-          msg.text = msg.text.replace(/(<([^>]+)>)/ig, "");
-          break;
-
-        // Username change
-        case "username":
-          var nameChanged = false;
-          var origName = msg.name;
-
-          // Ensure the name is unique by appending a number to it
-          // if it's not; keep trying that until it works.
-          while (!isUsernameUnique(msg.name)) {
-            msg.name = origName + appendToMakeUnique;
-            appendToMakeUnique++;
-            nameChanged = true;
-          }
-
-          // If the name had to be changed, we send a "rejectusername"
-          // message back to the user so they know their name has been
-          // altered by the server.
-          if (nameChanged) {
-            var changeMsg = {
-              id: msg.id,
-              type: "rejectusername",
-              name: msg.name
-            };
-            connect.sendUTF(JSON.stringify(changeMsg));
-          }
-
-          // Set this connection's final username and send out the
-          // updated user list to all users. Yeah, we're sending a full
-          // list instead of just updating. It's horribly inefficient
-          // but this is a demo. Don't do this in a real app.
-          connect.username = msg.name;
-          sendUserListToAll();
-          sendToClients = false;  // We already sent the proper responses
-          break;
-      }
-
-      // Convert the revised message back to JSON and send it out
-      // to the specified client or all clients, as appropriate. We
-      // pass through any messages not specifically handled
-      // in the select block above. This allows the clients to
-      // exchange signaling and other control objects unimpeded.
-
-      if (sendToClients) {
-        var msgString = JSON.stringify(msg);
-        var i;
-
-        // If the message specifies a target username, only send the
-        // message to them. Otherwise, send it to every user.
-        if (msg.target && msg.target !== undefined && msg.target.length !== 0) {
-          sendToOneUser(msg.target, msgString);
-        } else {
-          for (i=0; i<connectionArray.length; i++) {
-            connectionArray[i].sendUTF(msgString);
-          }
+          connectionArray.forEach(ClientToSendOffer =>{
+            if(ClientToSendOffer.clientID!=connection.clientID){
+              log("ClientToSendOffer.clientID: "+ClientToSendOffer.clientID);
+              log("connection.clientId: "+connection.clientID);
+              ClientToSendOffer.send(msg);
+            }
+          });
         }
+      }else if(msg.startsWith("ICE")){
+      //   private fun handleIce(sessionId: UUID, message: String) {
+      //     println("handling ice from $sessionId")
+      //     val clientToSendIce = clients.filterKeys { it != sessionId }.values.first()
+      //     clientToSendIce.send(message)
+      // }
+        log("the message is ICE");
+        connectionArray.forEach(ClientToSendICE => {
+          if(ClientToSendICE.clientID!=connection.clientID){
+            ClientToSendICE.send(msg);
+          }
+        })
+
+
+      }else if(msg.startsWith("ANSWER")){
+        log("the message is ANSWER");
+        connectionArray.forEach(ClientToSendAnswer =>{
+          if(ClientToSendAnswer.clientID!=connection.clientID){
+            ClientToSendAnswer.send(msg);
+          }
+        })
+        andriod_session_state=AndroidSessionState.Active;
+          //renew the client state to Active
+        connectionArray.forEach(clientConnection => {
+          
+          clientConnection.send(AndroidMsgType.STATE+" "+AndroidSessionState.Active);
+         
+          
+        });
       }
     }
   });

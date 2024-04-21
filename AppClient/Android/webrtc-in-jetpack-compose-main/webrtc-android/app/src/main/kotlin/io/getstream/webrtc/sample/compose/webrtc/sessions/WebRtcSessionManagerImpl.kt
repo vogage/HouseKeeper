@@ -180,6 +180,7 @@ class WebRtcSessionManagerImpl(
     sessionManagerScope.launch {
       signalingClient.signalingCommandFlow
         .collect { commandToValue ->
+          logger.d{"signalingCommandFlow: $commandToValue"}
           when (commandToValue.first) {
             SignalingCommand.OFFER -> handleOffer(commandToValue.second) //handle the server command
             SignalingCommand.ANSWER -> handleAnswer(commandToValue.second)
@@ -264,6 +265,7 @@ class WebRtcSessionManagerImpl(
   }
 
   private fun handleOffer(sdp: String) {
+    logger.d{"Qian ................................................................................."}
     logger.d { "[SDP] handle offer: $sdp" }
     offer = sdp
   }
@@ -276,6 +278,7 @@ class WebRtcSessionManagerImpl(
   }
 
   private suspend fun handleIce(iceMessage: String) {
+    logger.d{"[ice Message]: $iceMessage"}
     val iceArray = iceMessage.split(ICE_SEPARATOR)
     peerConnection.addIceCandidate(
       IceCandidate(
