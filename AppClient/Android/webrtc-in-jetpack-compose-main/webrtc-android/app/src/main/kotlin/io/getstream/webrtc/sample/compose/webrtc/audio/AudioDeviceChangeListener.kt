@@ -20,3 +20,5 @@ typealias AudioDeviceChangeListener = (
   audioDevices: List<AudioDevice>,
   selectedAudioDevice: AudioDevice?
 ) -> Unit
+
+//这个AudioDeviceChangeListener类型别名的函数主要用于监听音频设备的改变。当音频设备列表或选定的音频设备发生变化时，可以调用此函数。
