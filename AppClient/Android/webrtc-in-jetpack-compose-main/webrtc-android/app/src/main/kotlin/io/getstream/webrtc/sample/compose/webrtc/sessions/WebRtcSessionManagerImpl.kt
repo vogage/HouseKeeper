@@ -56,8 +56,13 @@ import java.util.UUID
 
 private const val ICE_SEPARATOR = '$'
 
+// To support not needing to pass the colors as an explicit parameter dependency to most composables, Compose offers CompositionLocal which allows you to create tree-scoped named objects that can be used as an implicit way to have data flow through the UI tree.
+
 val LocalWebRtcSessionManager: ProvidableCompositionLocal<WebRtcSessionManager> =
   staticCompositionLocalOf { error("WebRtcSessionManager was not initialized!") }
+//To provide a new value to a CompositionLocal, use the CompositionLocalProvider and its provides infix function that associates a CompositionLocal key to a value
+
+
 
 class WebRtcSessionManagerImpl(
   private val context: Context,
