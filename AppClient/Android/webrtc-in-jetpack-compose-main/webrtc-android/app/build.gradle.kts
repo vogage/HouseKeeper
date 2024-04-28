@@ -72,4 +72,7 @@ dependencies {
 
   // logger
   implementation(libs.stream.log)
+
+  implementation(libs.serialport)
+
 }
