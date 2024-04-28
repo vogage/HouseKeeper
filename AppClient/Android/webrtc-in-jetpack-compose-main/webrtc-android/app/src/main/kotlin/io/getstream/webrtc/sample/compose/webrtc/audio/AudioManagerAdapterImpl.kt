@@ -47,6 +47,16 @@ internal class AudioManagerAdapterImpl(
     return context.packageManager.hasSystemFeature(PackageManager.FEATURE_TELEPHONY)
   }
 
+  // 具体来说，PackageManager.FEATURE_AUDIO_OUTPUT 是一个系统功能的常量，它用于检查设备是否具备音频输出能力。通常，这意味着设备是否具备扬声器或耳机等音频输出设备。
+
+  // context: 是一个 Context 对象，它通常代表了当前应用的环境信息，如资源、类加载器等。
+  // packageManager: 是从 context 中获取的 PackageManager 实例，它提供了关于设备上安装的应用包（即应用）的信息。
+  // hasSystemFeature(String name): 是 PackageManager 类的一个方法，它用于检查设备是否具备指定的系统功能。
+  // 这段代码的执行结果是一个布尔值（true 或 false），表示设备是否支持音频输出。如果设备支持音频输出，则该方法返回 true；否则返回 false。
+
+  // 在编写需要音频输出的应用时，这样的检查是有用的，因为它可以帮助开发者在运行时确定设备是否满足应用的基本需求，从而避免在不支持音频输出的设备上运行应用时出现问题。
+
+
   @SuppressLint("NewApi")
   override fun hasSpeakerphone(): Boolean {
     return if (context.packageManager.hasSystemFeature(PackageManager.FEATURE_AUDIO_OUTPUT)) {

@@ -42,7 +42,8 @@ class AudioSwitchHandler constructor(private val context: Context) : AudioHandle
   private var audioDeviceChangeListener: AudioDeviceChangeListener? = null
   private var onAudioFocusChangeListener: AudioManager.OnAudioFocusChangeListener? = null
   private var preferredDeviceList: List<Class<out AudioDevice>>? = null
-
+  //Class<out AudioDevice>：这里使用了Kotlin的泛型以及类型参数。Class是Java中的一个类，代表一个类的运行时类对象。
+  //out是一个类型投影，它表示这个Class对象可以是AudioDevice或任何继承自AudioDevice的类。
   private var audioSwitch: AudioSwitch? = null
 
   // AudioSwitch is not threadsafe, so all calls should be done on the main thread.
