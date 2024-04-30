@@ -173,6 +173,10 @@ internal class SerialComAdapterImpl(
   override fun setStopBits(stopBits: Int) {
     TODO("Not yet implemented")
   }
+
+  override fun init(){
+    
+  }
 }
 
 

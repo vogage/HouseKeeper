@@ -12,4 +12,16 @@ interface SerialComAdapter {
   fun setParity(parity: Int)
 
   fun setFlowCon(flowCon: Int)
+
+  fun Init()
+
+  fun Open()
+
+  fun Connect()
+
+  fun Send()
+
+  fun Read()
+
+  fun Close()
 }
