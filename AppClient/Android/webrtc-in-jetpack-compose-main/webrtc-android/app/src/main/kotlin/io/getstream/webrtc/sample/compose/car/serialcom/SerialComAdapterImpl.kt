@@ -1,5 +1,8 @@
 package io.getstream.webrtc.sample.compose.car.serialcom
 
+
+
+
 //import android.util.Log
 //import java.io.File
 //import java.io.FileDescriptor
@@ -146,9 +149,22 @@ package io.getstream.webrtc.sample.compose.car.serialcom
 //  }
 //}
 
+
 internal class SerialComAdapterImpl(
 
 ):SerialComAdapter{
+
+
+
+
+
+
+
+
+
+
+
+
 
   override fun setBaudRate(iBaud: Int) {
 
@@ -177,6 +193,27 @@ internal class SerialComAdapterImpl(
   override fun init(){
     
   }
+
+  override fun close() {
+    TODO("Not yet implemented")
+  }
+
+  override fun connect() {
+    TODO("Not yet implemented")
+  }
+
+  override fun open() {
+    TODO("Not yet implemented")
+  }
+
+  override fun read() {
+    TODO("Not yet implemented")
+  }
+
+  override fun send() {
+    TODO("Not yet implemented")
+  }
+
 }
 
 

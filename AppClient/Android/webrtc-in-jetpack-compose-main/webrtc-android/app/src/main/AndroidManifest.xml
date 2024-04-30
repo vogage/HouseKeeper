@@ -22,6 +22,7 @@
   <uses-permission android:name="android.permission.CAMERA" />
   <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
+
   <uses-feature android:name="android.hardware.camera" />
 
   <application
@@ -42,7 +43,7 @@
       android:theme="@style/Theme.WebrtcSampleCompose">
       <intent-filter>
         <action android:name="android.intent.action.MAIN" />
-
+        <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
         <category android:name="android.intent.category.LAUNCHER" />
       </intent-filter>
     </activity>

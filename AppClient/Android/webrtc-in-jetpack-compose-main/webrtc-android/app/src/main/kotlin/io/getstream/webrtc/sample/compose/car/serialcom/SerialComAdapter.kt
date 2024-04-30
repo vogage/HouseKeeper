@@ -13,15 +13,15 @@ interface SerialComAdapter {
 
   fun setFlowCon(flowCon: Int)
 
-  fun Init()
+  fun init()
 
-  fun Open()
+  fun open()
 
-  fun Connect()
+  fun connect()
 
-  fun Send()
+  fun send()
 
-  fun Read()
+  fun read()
 
-  fun Close()
+  fun close()
 }
