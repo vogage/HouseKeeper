@@ -30,6 +30,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import io.getstream.webrtc.sample.compose.ui.screens.SerialCom.SerialPortScreen
 import io.getstream.webrtc.sample.compose.ui.screens.stage.StageScreen
 import io.getstream.webrtc.sample.compose.ui.screens.video.VideoCallScreen
 import io.getstream.webrtc.sample.compose.ui.theme.WebrtcSampleComposeTheme
@@ -62,12 +63,16 @@ class MainActivity : ComponentActivity() {
             color = MaterialTheme.colors.background
           ) {
             var onCallScreen by remember { mutableStateOf(false) }
+            var onOpenSerialCom by remember{ mutableStateOf(false) }
             val state by sessionManager.signalingClient.sessionStateFlow.collectAsState()
 
             if (!onCallScreen) {
-              StageScreen(state = state) { onCallScreen = true }
+              StageScreen(state = state,{onOpenSerialCom=true}) { onCallScreen = true }
             } else {
-              VideoCallScreen()
+                VideoCallScreen()
+            }
+            if(onOpenSerialCom) {
+              SerialPortScreen()
             }
           }
         }
