@@ -30,7 +30,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import io.getstream.webrtc.sample.compose.ui.screens.SerialCom.SerialPortScreen
+import io.getstream.webrtc.sample.compose.car.CarManager
+import io.getstream.webrtc.sample.compose.car.CarManagerImp
+import io.getstream.webrtc.sample.compose.car.serialcom.SerialComServer
+import io.getstream.webrtc.sample.compose.ui.screens.CarNewScreen.CarScreen
 import io.getstream.webrtc.sample.compose.ui.screens.stage.StageScreen
 import io.getstream.webrtc.sample.compose.ui.screens.video.VideoCallScreen
 import io.getstream.webrtc.sample.compose.ui.theme.WebrtcSampleComposeTheme
@@ -39,7 +42,6 @@ import io.getstream.webrtc.sample.compose.webrtc.peer.StreamPeerConnectionFactor
 import io.getstream.webrtc.sample.compose.webrtc.sessions.LocalWebRtcSessionManager
 import io.getstream.webrtc.sample.compose.webrtc.sessions.WebRtcSessionManager
 import io.getstream.webrtc.sample.compose.webrtc.sessions.WebRtcSessionManagerImpl
-
 class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -53,6 +55,10 @@ class MainActivity : ComponentActivity() {
     )
 
     //sessionManager.signalingClient.myws.send("hhhhhhhhhhhhhhhhhhhhhhjjjjjjjjjj"); //just test
+    val carmanager:CarManager=CarManagerImp(
+      context=this,
+      serialcomserver = SerialComServer(this)
+    )
 
     setContent {
       WebrtcSampleComposeTheme {
@@ -67,12 +73,16 @@ class MainActivity : ComponentActivity() {
             val state by sessionManager.signalingClient.sessionStateFlow.collectAsState()
 
             if (!onCallScreen) {
-              StageScreen(state = state,{onOpenSerialCom=true}) { onCallScreen = true }
-            } else {
-                VideoCallScreen()
+              if(!onOpenSerialCom){
+                StageScreen(state = state,{onOpenSerialCom=true}) { onCallScreen = true }
+              }else{
+
+                CarScreen()
+              }
             }
-            if(onOpenSerialCom) {
-              SerialPortScreen()
+            else {
+
+              VideoCallScreen()
             }
           }
         }

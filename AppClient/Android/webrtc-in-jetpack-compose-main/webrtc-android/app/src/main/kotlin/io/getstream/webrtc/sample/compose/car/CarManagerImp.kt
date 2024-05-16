@@ -1,42 +1,15 @@
 package io.getstream.webrtc.sample.compose.car
 
-import io.getstream.webrtc.sample.compose.car.serialcom.SerialComAdapter
+import android.content.Context
+import io.getstream.webrtc.sample.compose.car.serialcom.SerialComServer
+
 
 class CarManagerImp(
-  private val serialcom: SerialComAdapter
+  private val context: Context,
+  val serialcomserver: SerialComServer,
 ):CarManager{
-  private val carOnLine: Boolean=false;
-  override fun carBattery() {
-    TODO("Not yet implemented")
-  }
-
-  override fun carOffCharge() {
-    TODO("Not yet implemented")
-  }
-
-  override fun carOffline() {
-    TODO("Not yet implemented")
-  }
-
-  override fun carOnCharge() {
-    TODO("Not yet implemented")
-  }
-
-  override fun carOnline() {
-    TODO("Not yet implemented")
-  }
-
   override fun carReady() {
-    TODO("Not yet implemented")
+    serialcomserver.start()
   }
-
-  override fun carSignal() {
-    TODO("Not yet implemented")
-  }
-
-  override fun move() {
-
-  }
-
 
 }
