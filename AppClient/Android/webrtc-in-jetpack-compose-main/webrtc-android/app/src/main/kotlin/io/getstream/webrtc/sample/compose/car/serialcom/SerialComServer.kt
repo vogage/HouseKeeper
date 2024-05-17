@@ -1,21 +1,18 @@
 package io.getstream.webrtc.sample.compose.car.serialcom
 
-import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
-import android.content.Context.*
 import android.content.Intent
-import android.content.IntentFilter
 import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbManager
-import androidx.core.content.getSystemService
-
+import android.os.Build
 import com.hoho.android.usbserial.driver.UsbSerialPort
 import com.hoho.android.usbserial.driver.UsbSerialProber
 import com.hoho.android.usbserial.util.SerialInputOutputManager
 import io.getstream.log.taggedLogger
 import io.getstream.webrtc.sample.compose.BuildConfig
+
 
 class SerialComServer(
   private val context: Context
@@ -26,8 +23,9 @@ class SerialComServer(
   private val INTENT_ACTION_GRANT_USB: String = BuildConfig.APPLICATION_ID + ".GRANT_USB"
   private var usbPermission: UsbPermission = UsbPermission.Unknown
   private var usbSerialPort: UsbSerialPort? = null
-
+  private val withIoManager = false
   private lateinit var usbManager: UsbManager
+  private var usbIoManager: SerialInputOutputManager? = null
 
   private val deviceId = 0
   private var portNum:kotlin.Int = 0
@@ -80,36 +78,50 @@ class SerialComServer(
     ) {
       usbPermission = UsbPermission.Requested
       val flags =
-        PendingIntent.FLAG_MUTABLE
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_MUTABLE else 0
       val intent = Intent(INTENT_ACTION_GRANT_USB)
 
       val usbPermissionIntent = PendingIntent.getBroadcast(context, 0, intent, flags)
+      if(usbPermissionIntent==null){
+
+      }else{
+
+      }
       usbManager.requestPermission(driver.device, usbPermissionIntent)
       return
     }
 
     try {
-      usbSerialPort.open(usbConnection)
+     usbSerialPort?.open(usbConnection)
       try {
-        usbSerialPort.setParameters(baudRate, 8, 1, UsbSerialPort.PARITY_NONE)
+        usbSerialPort?.setParameters(baudRate, 8, 1, UsbSerialPort.PARITY_NONE)
       } catch (e: UnsupportedOperationException) {
 
       }
       if (withIoManager) {
-        usbIoManager = SerialInputOutputManager(usbSerialPort, this)
-        usbIoManager.start()
+        usbIoManager = SerialInputOutputManager(usbSerialPort, MySerialListener)
+        usbIoManager!!.start()
       }
-      status("connected")
-      connected = true
-      controlLines.start()
+
+
     } catch (e: Exception) {
-      status("connection failed: " + e.message)
-      disconnect()
+
+
+
+
+    }
+  }
+
+  companion object MySerialListener:SerialInputOutputManager.Listener {
+    override fun onNewData(data: ByteArray?) {
+
+    }
+
+    override fun onRunError(e: java.lang.Exception?) {
+
     }
   }
 
 
-
-
-
 }
+
