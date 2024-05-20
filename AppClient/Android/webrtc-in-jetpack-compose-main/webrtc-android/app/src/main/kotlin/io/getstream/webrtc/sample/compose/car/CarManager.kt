@@ -1,7 +1,9 @@
 package io.getstream.webrtc.sample.compose.car
 
-interface CarManager {
+import io.getstream.webrtc.sample.compose.car.serialcom.SerialComServer
 
+interface CarManager {
+  val serialcomserver: SerialComServer
   fun carReady()
 
 

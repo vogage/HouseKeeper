@@ -12,6 +12,8 @@ import com.hoho.android.usbserial.driver.UsbSerialProber
 import com.hoho.android.usbserial.util.SerialInputOutputManager
 import io.getstream.log.taggedLogger
 import io.getstream.webrtc.sample.compose.BuildConfig
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 
 class SerialComServer(
@@ -26,6 +28,9 @@ class SerialComServer(
   private val withIoManager = false
   private lateinit var usbManager: UsbManager
   private var usbIoManager: SerialInputOutputManager? = null
+
+  private val _SerialComStateFlow = MutableStateFlow(SerialComState.Creating)
+  val serialcomstateflow: StateFlow<SerialComState> = _SerialComStateFlow
 
   private val deviceId = 0
   private var portNum:kotlin.Int = 0
@@ -62,6 +67,7 @@ class SerialComServer(
      */
 
   private fun connect() {
+    logger.d{"Call:SerivalComServer connect()"}
     var device: UsbDevice? = null
     val usbManager = context.getSystemService(Context.USB_SERVICE) as UsbManager
     for (v in usbManager.deviceList.values) if (v.deviceId == deviceId) device = v
@@ -125,3 +131,10 @@ class SerialComServer(
 
 }
 
+enum class SerialComState {
+  Active, // Offer and Answer messages has been sent
+  Creating, // Creating session, offer has been sent
+  Ready, // Both clients available and ready to initiate session
+  Impossible, // We have less than two clients connected to the server
+  Offline // unable to connect signaling server
+}

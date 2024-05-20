@@ -42,6 +42,7 @@ import io.getstream.webrtc.sample.compose.webrtc.peer.StreamPeerConnectionFactor
 import io.getstream.webrtc.sample.compose.webrtc.sessions.LocalWebRtcSessionManager
 import io.getstream.webrtc.sample.compose.webrtc.sessions.WebRtcSessionManager
 import io.getstream.webrtc.sample.compose.webrtc.sessions.WebRtcSessionManagerImpl
+
 class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -60,6 +61,7 @@ class MainActivity : ComponentActivity() {
       serialcomserver = SerialComServer(this)
     )
 
+
     setContent {
       WebrtcSampleComposeTheme {
         CompositionLocalProvider(LocalWebRtcSessionManager provides sessionManager) {
@@ -71,13 +73,15 @@ class MainActivity : ComponentActivity() {
             var onCallScreen by remember { mutableStateOf(false) }
             var onOpenSerialCom by remember{ mutableStateOf(false) }
             val state by sessionManager.signalingClient.sessionStateFlow.collectAsState()
+            val comstate by carmanager.serialcomserver.serialcomstateflow.collectAsState()
+
 
             if (!onCallScreen) {
               if(!onOpenSerialCom){
                 StageScreen(state = state,{onOpenSerialCom=true}) { onCallScreen = true }
               }else{
 
-                CarScreen()
+                CarScreen(comstate=comstate){carmanager.carReady()}
               }
             }
             else {
