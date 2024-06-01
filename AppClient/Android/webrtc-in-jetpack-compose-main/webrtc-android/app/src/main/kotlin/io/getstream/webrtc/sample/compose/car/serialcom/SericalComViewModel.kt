@@ -19,6 +19,7 @@ class SericalComViewModel(private val serialcommanager:SerialComManager
         t="fahfhhhh"
       )
     }
+
   fun init():Unit{
     refresh()
   }

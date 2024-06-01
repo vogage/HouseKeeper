@@ -32,7 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import io.getstream.webrtc.sample.compose.car.CarManager
 import io.getstream.webrtc.sample.compose.car.CarManagerImp
-import io.getstream.webrtc.sample.compose.car.serialcom.SerialComServer
+import io.getstream.webrtc.sample.compose.car.serialcom.SerialComManagerImp
 import io.getstream.webrtc.sample.compose.ui.screens.CarNewScreen.CarScreen
 import io.getstream.webrtc.sample.compose.ui.screens.stage.StageScreen
 import io.getstream.webrtc.sample.compose.ui.screens.video.VideoCallScreen
@@ -58,7 +58,7 @@ class MainActivity : ComponentActivity() {
     //sessionManager.signalingClient.myws.send("hhhhhhhhhhhhhhhhhhhhhhjjjjjjjjjj"); //just test
     val carmanager:CarManager=CarManagerImp(
       context=this,
-      serialcomserver = SerialComServer(this)
+      serialcomserver = SerialComManagerImp(this)
     )
 
 
