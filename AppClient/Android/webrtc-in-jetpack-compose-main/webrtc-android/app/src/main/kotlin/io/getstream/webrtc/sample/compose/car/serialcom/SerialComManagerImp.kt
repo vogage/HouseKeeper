@@ -15,50 +15,48 @@ import io.getstream.webrtc.sample.compose.BuildConfig
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
-
-class SerialComServer(
-  private val context: Context
-){
+class SerialComManagerImp(private val context:Context):SerialComManager{
   private val logger by taggedLogger("Call:SerivalComServer")
-  private val carOnLine: Boolean=false;
-  private var broadcastReceiver: BroadcastReceiver? = null
+  private var mUsbBroadcastReceiver: BroadcastReceiver? = null
   private val INTENT_ACTION_GRANT_USB: String = BuildConfig.APPLICATION_ID + ".GRANT_USB"
   private var usbPermission: UsbPermission = UsbPermission.Unknown
   private var usbSerialPort: UsbSerialPort? = null
   private val withIoManager = false
-  private lateinit var usbManager: UsbManager
+
   private var usbIoManager: SerialInputOutputManager? = null
 
-  private val _SerialComStateFlow = MutableStateFlow(SerialComState.Creating)
-  val serialcomstateflow: StateFlow<SerialComState> = _SerialComStateFlow
+  private var _SerialComStateFlow = MutableStateFlow(SerialComState.Creating)
+  override val serialcomstateflow: StateFlow<SerialComState>
+    get() =  _SerialComStateFlow
 
-  private val deviceId = 0
-  private var portNum:kotlin.Int = 0
-  private var baudRate:kotlin.Int = 9600
-
-  private enum class UsbPermission {
-    Unknown,
-    Requested,
-    Granted,
-    Denied
+  private fun updateSerialComState(serialComState:SerialComState){
+    _SerialComStateFlow.value=serialComState
   }
 
-  fun start() {
-    broadcastReceiver = object : BroadcastReceiver() {
+  private sealed class UsbIntent() {
+    val Attached:String ="android.hardware.usb.action.USB_DEVICE_ATTACHED"
+
+  }
+  private lateinit var usbManager: UsbManager
+
+ //begin and reactive to the usbDevice attached
+  override fun start() {
+    mUsbBroadcastReceiver = object : BroadcastReceiver() {
       override fun onReceive(context: Context, intent: Intent) {
         if (INTENT_ACTION_GRANT_USB.equals(intent.action)) {
           usbPermission = if (intent.getBooleanExtra(
               UsbManager.EXTRA_PERMISSION_GRANTED,
               false
             )
-          ) UsbPermission.Granted else UsbPermission.Denied
+          )SerialComManager.UsbPermission.Granted else SerialComManager.UsbPermission.Denied
           connect()
         }
       }
-    }
-   // ContextCompat.registerReceiver(context, broadcastReceiver,
-   //   new IntentFilter(INTENT_ACTION_GRANT_USB), ContextCompat.RECEIVER_NOT_EXPORTED);
 
+    }
+    // ContextCompat.registerReceiver(context, broadcastReceiver,
+    //   new IntentFilter(INTENT_ACTION_GRANT_USB), ContextCompat.RECEIVER_NOT_EXPORTED);
+    updateSerialComState(SerialComState.UsbAttached)
 
   }
 
@@ -66,7 +64,8 @@ class SerialComServer(
      * Serial + UI
      */
 
-  private fun connect() {
+  override fun connect() {
+    updateSerialComState(SerialComState.Active)
     logger.d{"Call:SerivalComServer connect()"}
     var device: UsbDevice? = null
     val usbManager = context.getSystemService(Context.USB_SERVICE) as UsbManager
@@ -78,11 +77,11 @@ class SerialComServer(
     }
     usbSerialPort = driver.ports[portNum]
     val usbConnection = usbManager.openDevice(driver.device)
-    if (usbConnection == null && usbPermission == UsbPermission.Unknown && !usbManager.hasPermission(
+    if (usbConnection == null && usbPermission ==UsbPermission.Unknown && !usbManager.hasPermission(
         driver.device
       )
     ) {
-      usbPermission = UsbPermission.Requested
+      usbPermission =UsbPermission.Requested
       val flags =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_MUTABLE else 0
       val intent = Intent(INTENT_ACTION_GRANT_USB)
@@ -98,7 +97,7 @@ class SerialComServer(
     }
 
     try {
-     usbSerialPort?.open(usbConnection)
+      usbSerialPort?.open(usbConnection)
       try {
         usbSerialPort?.setParameters(baudRate, 8, 1, UsbSerialPort.PARITY_NONE)
       } catch (e: UnsupportedOperationException) {
@@ -118,7 +117,14 @@ class SerialComServer(
     }
   }
 
-  companion object MySerialListener:SerialInputOutputManager.Listener {
+  override fun close() {
+    TODO("Not yet implemented")
+  }
+
+  override fun send() {
+    TODO("Not yet implemented")
+  }
+  companion object MySerialListener: SerialInputOutputManager.Listener {
     override fun onNewData(data: ByteArray?) {
 
     }
@@ -128,13 +134,6 @@ class SerialComServer(
     }
   }
 
-
 }
 
-enum class SerialComState {
-  Active, // Offer and Answer messages has been sent
-  Creating, // Creating session, offer has been sent
-  Ready, // Both clients available and ready to initiate session
-  Impossible, // We have less than two clients connected to the server
-  Offline // unable to connect signaling server
-}
+
