@@ -33,6 +33,7 @@ enum class SerialComState {
   UsbAttached,// new usb device attached to the phone
   Permitted,//the extra usb device visit is permitted
   Denied,// the visit permission was denied
+  Disable,// the port cannot be connected
   Ready, // Both clients available and ready to initiate session
   Impossible, // We have less than two clients connected to the server
   Offline // unable to connect signaling server
@@ -43,7 +44,8 @@ data class DeviceItem(
   var dataBits:Int = 8,
   var port:Int = UsbSerialPort.PARITY_NONE,
   val vendorId:Int=-1,
-  val productId:Int=-1
+  val productId:Int=-1,
+  val idOfItem:Int=-1,
 ){
   fun setConfig(bauRate: Int,stopBits: Int,dataBits: Int,port: Int){
     this.bauRate=bauRate

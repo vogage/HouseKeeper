@@ -33,7 +33,7 @@ import androidx.compose.ui.Modifier
 import io.getstream.webrtc.sample.compose.car.CarManager
 import io.getstream.webrtc.sample.compose.car.CarManagerImp
 import io.getstream.webrtc.sample.compose.car.serialcom.SerialComManagerImp
-import io.getstream.webrtc.sample.compose.ui.screens.CarNewScreen.CarScreen
+import io.getstream.webrtc.sample.compose.car.serialcom.SerialComScreen
 import io.getstream.webrtc.sample.compose.ui.screens.stage.StageScreen
 import io.getstream.webrtc.sample.compose.ui.screens.video.VideoCallScreen
 import io.getstream.webrtc.sample.compose.ui.theme.WebrtcSampleComposeTheme
@@ -73,7 +73,7 @@ class MainActivity : ComponentActivity() {
             var onCallScreen by remember { mutableStateOf(false) }
             var onOpenSerialCom by remember{ mutableStateOf(false) }
             val state by sessionManager.signalingClient.sessionStateFlow.collectAsState()
-            val comstate by carmanager.serialcomserver.serialcomstateflow.collectAsState()
+
 
 
             if (!onCallScreen) {
@@ -81,7 +81,7 @@ class MainActivity : ComponentActivity() {
                 StageScreen(state = state,{onOpenSerialCom=true}) { onCallScreen = true }
               }else{
 
-                CarScreen(comstate=comstate){carmanager.carReady()}
+                SerialComScreen()
               }
             }
             else {
