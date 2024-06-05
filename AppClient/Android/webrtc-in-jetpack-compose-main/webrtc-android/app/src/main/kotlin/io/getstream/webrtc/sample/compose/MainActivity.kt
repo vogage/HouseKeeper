@@ -32,8 +32,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import io.getstream.webrtc.sample.compose.car.CarManager
 import io.getstream.webrtc.sample.compose.car.CarManagerImp
+import io.getstream.webrtc.sample.compose.car.serialcom.SerialComManager
 import io.getstream.webrtc.sample.compose.car.serialcom.SerialComManagerImp
 import io.getstream.webrtc.sample.compose.car.serialcom.SerialComScreen
+import io.getstream.webrtc.sample.compose.car.serialcom.SericalComViewModel
 import io.getstream.webrtc.sample.compose.ui.screens.stage.StageScreen
 import io.getstream.webrtc.sample.compose.ui.screens.video.VideoCallScreen
 import io.getstream.webrtc.sample.compose.ui.theme.WebrtcSampleComposeTheme
@@ -61,6 +63,7 @@ class MainActivity : ComponentActivity() {
       serialcomserver = SerialComManagerImp(this)
     )
 
+    val serialComManager:SerialComManager=SerialComManagerImp(context=this)
 
     setContent {
       WebrtcSampleComposeTheme {
@@ -81,7 +84,7 @@ class MainActivity : ComponentActivity() {
                 StageScreen(state = state,{onOpenSerialCom=true}) { onCallScreen = true }
               }else{
 
-                SerialComScreen()
+                SerialComScreen(SericalComViewModel(serialComManager))
               }
             }
             else {

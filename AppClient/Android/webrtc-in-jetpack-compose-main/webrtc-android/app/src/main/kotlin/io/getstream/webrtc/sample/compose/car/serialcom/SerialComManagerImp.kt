@@ -12,7 +12,8 @@ import com.hoho.android.usbserial.util.SerialInputOutputManager
 import io.getstream.log.taggedLogger
 import io.getstream.webrtc.sample.compose.BuildConfig
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 
 
 class SerialComManagerImp(private val context:Context):SerialComManager{
@@ -31,25 +32,18 @@ class SerialComManagerImp(private val context:Context):SerialComManager{
 
 
   private var _availableSerialItemsFlow= MutableStateFlow<MutableList<DeviceItem>>(mutableListOf())
-  override val availableSerialItemsFlow: StateFlow<List<DeviceItem>>
-    get()=_availableSerialItemsFlow
+  override val availableSerialItemsFlow=_availableSerialItemsFlow.asStateFlow()
+
 
   private var _SerialComStateFlow = MutableStateFlow(SerialComState.Creating)
-  override val serialComStateflow: StateFlow<SerialComState>
-    get() =  _SerialComStateFlow
+  override val serialComStateflow=_SerialComStateFlow.asStateFlow()
 
-  private fun updateSerialComState(serialComState:SerialComState){
-    _SerialComStateFlow.value=serialComState
-  }
-
-  private fun updateAvailableSerialItemsState(availableSerialItems:MutableList<DeviceItem>){
-    _availableSerialItemsFlow.value = availableSerialItems
-  }
   private lateinit var usbManager: UsbManager
 
 
   //register an intent filter
   override fun initial() {
+    logger.d{"initial"}
     val filter:IntentFilter =IntentFilter(MY_INTENT_ACTION_PERMISSION_USB)
     filter.addAction(UsbManager.ACTION_USB_ACCESSORY_ATTACHED)
     filter.addAction(UsbManager.ACTION_USB_ACCESSORY_DETACHED)
@@ -86,10 +80,10 @@ class SerialComManagerImp(private val context:Context):SerialComManager{
   private fun DealWithUsbPermissionResult(intent:Intent){
     if(intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED,false)){
       usbPermission=UsbPermission.Granted
-      updateSerialComState(SerialComState.Permitted)
+      _SerialComStateFlow.update { SerialComState.Permitted }
     }else{
       usbPermission=UsbPermission.Denied
-      updateSerialComState(SerialComState.Denied)
+      _SerialComStateFlow.update { SerialComState.Denied }
     }
   }
 
@@ -111,7 +105,7 @@ class SerialComManagerImp(private val context:Context):SerialComManager{
       availableDevices.add(SerialDeviceAdapter(driver,idOfItem))
       idOfItem++
     }
-    updateAvailableSerialItemsState(availableDevices)
+     _availableSerialItemsFlow.update{availableDevices}
   }
 
   private fun SerialDeviceAdapter(driver:UsbSerialDriver,idOfItem:Int):DeviceItem{
