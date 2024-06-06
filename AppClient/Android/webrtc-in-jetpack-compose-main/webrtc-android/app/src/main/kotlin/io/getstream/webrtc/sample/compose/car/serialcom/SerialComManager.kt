@@ -11,6 +11,7 @@ interface SerialComManager{
   fun initial()
   fun start()
 
+  fun updateUsbAvailableDrivers()
   fun connect()
 
   fun close()

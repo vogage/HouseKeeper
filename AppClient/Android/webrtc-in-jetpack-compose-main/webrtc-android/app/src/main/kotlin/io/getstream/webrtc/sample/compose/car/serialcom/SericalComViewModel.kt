@@ -41,7 +41,9 @@ class SericalComViewModel(
   init{
     refresh()
   }
-
+  fun updateDriverList(){
+    serialComManager.updateUsbAvailableDrivers()
+  }
   private fun refresh():Unit{
 
   }

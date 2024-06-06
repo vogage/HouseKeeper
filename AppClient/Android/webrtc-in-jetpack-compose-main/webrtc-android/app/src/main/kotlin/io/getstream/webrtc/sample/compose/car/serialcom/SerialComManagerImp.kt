@@ -94,7 +94,7 @@ class SerialComManagerImp(private val context:Context):SerialComManager{
     updateUsbAvailableDrivers()
   }
 
-  private fun updateUsbAvailableDrivers(){
+  override fun updateUsbAvailableDrivers(){
     usbManager=context.getSystemService(Context.USB_SERVICE) as UsbManager
     val usbDefaultProber = UsbSerialProber.getDefaultProber()
     //val usbCustomProber: UsbSerialProber = CustomProber.getCustomProber()
@@ -107,6 +107,7 @@ class SerialComManagerImp(private val context:Context):SerialComManager{
     }
      _availableSerialItemsFlow.update{availableDevices}
   }
+
 
   private fun SerialDeviceAdapter(driver:UsbSerialDriver,idOfItem:Int):DeviceItem{
     var item:DeviceItem= DeviceItem(9600,1,8, UsbSerialPort.PARITY_NONE,
