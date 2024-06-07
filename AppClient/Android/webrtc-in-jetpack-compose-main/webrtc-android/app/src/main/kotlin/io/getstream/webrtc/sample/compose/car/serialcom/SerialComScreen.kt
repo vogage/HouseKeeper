@@ -9,6 +9,8 @@ import androidx.compose.material.Card
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
@@ -19,12 +21,15 @@ import io.getstream.webrtc.sample.compose.ui.theme.Teal200
 fun SerialComScreen(
    viewModel: SericalComViewModel
 ){
-   Column (
+   val uiState by viewModel.uiStateFlow.collectAsState()
+
+  Column (
      modifier = Modifier
        .padding(vertical = 10.dp)
+
    ){
       DeviceItemCard (
-        toggleSelection = { viewModel.test() }
+        toggleSelection = { viewModel.test() },uiState=uiState
       )
    }
 }
@@ -34,7 +39,9 @@ fun SerialComScreen(
 fun DeviceItemCard(
   toggleSelection:()->Unit,
   modifier:Modifier=Modifier,
-  isSelected:Boolean=false
+  isSelected:Boolean=false,
+  uiState: SerialUiState
+
 ){
   Card(
     modifier = modifier
@@ -44,15 +51,17 @@ fun DeviceItemCard(
     onClick = toggleSelection
   ) {
     Column(
-      modifier = Modifier
-        .fillMaxWidth()
-        .padding(20.dp)
+       modifier = Modifier
+         .fillMaxWidth()
+         .padding(20.dp)
     ) {
       Row(
         modifier = Modifier
           .fillMaxWidth()
       ){
-        Text( "hhhhhhh")
+        Text("hfaklsdfhlkfjlakfjla" )
+        Text(uiState.hhtt)
+        //Text(uiState.devicesList?.get(0)?.bauRate.toString())
       }
     }
 
