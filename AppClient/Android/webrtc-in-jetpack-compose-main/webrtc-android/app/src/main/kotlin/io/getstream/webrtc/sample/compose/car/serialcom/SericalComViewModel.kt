@@ -5,23 +5,22 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
 
 sealed interface SerialUiState{
-  val isLoading:Boolean
+  val GetDeviceItem:Boolean
   val errorMessage:List<ErrorMessage>
   val hhtt:String
   data class NoDeviceItem(
-    override val isLoading: Boolean=true,
+    override val GetDeviceItem: Boolean=false,
     override val errorMessage: List<ErrorMessage> = emptyList(),
     override val hhtt:String="hhhhhhhhhhhhhhbbbbbb"
   ):SerialUiState
 
   data class HasDeviceItem(
-    override val isLoading: Boolean,
+    override val GetDeviceItem: Boolean=true,
     override val errorMessage: List<ErrorMessage>,
     val deviceList:List<DeviceItem>,
     override val hhtt:String="hhhhhhhhhaaaaaaaaaaaa"
@@ -35,20 +34,22 @@ class SericalComViewModel(
 
 
   private val _serialViewModelStateFlow = MutableStateFlow(CreateSerialViewModelSate(serialComManager))
-  val serialViewModelStateFlow=_serialViewModelStateFlow.asStateFlow()
 
-  val uiStateFlow= _serialViewModelStateFlow
+  val uiStateFlow= _serialViewModelStateFlow// expose UI to serialComScreen
     .map{it.toUiState()}
     .stateIn(
       scope = viewModelScope,
       started = SharingStarted.WhileSubscribed(5000),
-      initialValue = SerialUiState.NoDeviceItem() // 提供一个初始的 UI 状态值
+      initialValue = _serialViewModelStateFlow.value.toUiState() // provide a initial value
     )
 
   private fun CreateSerialViewModelSate(serialComManager: SerialComManager):SerialViewModelState{
-    return SerialViewModelState(
+    var vm=SerialViewModelState(
       t= "fahfhhhh202406072049"
     )
+    vm.devicesList?.add(DeviceItem(bauRate = 999999))
+    vm.devicesList?.add(DeviceItem(bauRate = 888888))
+    return vm
   }
 
   fun test(){
@@ -76,12 +77,12 @@ data class SerialViewModelState(
    fun toUiState():SerialUiState =
     if (devicesList == null || devicesList?.isEmpty() == true) {
        SerialUiState.NoDeviceItem(
-         isLoading = true,
+         GetDeviceItem = false ,
          errorMessage = emptyList()
        )
      } else {
        SerialUiState.HasDeviceItem(
-         isLoading = false,
+         GetDeviceItem = false,
          errorMessage = emptyList(),
          deviceList = devicesList!!,
          hhtt = t!!

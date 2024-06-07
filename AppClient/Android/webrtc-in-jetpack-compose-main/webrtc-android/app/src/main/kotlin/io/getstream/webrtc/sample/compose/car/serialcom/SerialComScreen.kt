@@ -28,27 +28,48 @@ fun SerialComScreen(
        .padding(vertical = 10.dp)
 
    ){
-      DeviceItemCard (
-        toggleSelection = { viewModel.test() },uiState=uiState
-      )
+      when(uiState){
+        is SerialUiState.HasDeviceItem ->
+          HasDeviceItemContent(uiState as SerialUiState.HasDeviceItem)
+        is SerialUiState.NoDeviceItem ->
+          NoDeviceItemContent(uiState as SerialUiState.NoDeviceItem)
+      }
    }
 }
+@Composable
+private fun HasDeviceItemContent(
+  uiState: SerialUiState.HasDeviceItem
+){
+  Column() {
+    uiState.deviceList.forEach { device ->
+      DeviceItemCard(
+        baud = device.bauRate
 
+      )
+    }
+  }
+}
+@Composable
+private fun NoDeviceItemContent(
+  uiState: SerialUiState.NoDeviceItem
+){
+
+}
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun DeviceItemCard(
-  toggleSelection:()->Unit,
+private fun DeviceItemCard(
+  //toggleSelection:()->Unit,
   modifier:Modifier=Modifier,
   isSelected:Boolean=false,
-  uiState: SerialUiState
-
-){
+  baud:Int=-1,
+  id:Int=-1
+): Unit {
   Card(
     modifier = modifier
       .padding(horizontal = 16.dp, vertical = 4.dp)
       .semantics { selected = isSelected },
     backgroundColor = Teal200,
-    onClick = toggleSelection
+    //onClick = toggleSelection
   ) {
     Column(
        modifier = Modifier
@@ -60,8 +81,13 @@ fun DeviceItemCard(
           .fillMaxWidth()
       ){
         Text("hfaklsdfhlkfjlakfjla" )
-        Text(uiState.hhtt)
         //Text(uiState.devicesList?.get(0)?.bauRate.toString())
+      }
+      Row(
+        modifier = Modifier
+          .fillMaxWidth()
+      ){
+        Text(baud.toString())
       }
     }
 
