@@ -13,12 +13,12 @@ interface SerialComManager{
 
   fun updateUsbAvailableDrivers()
   fun connect()
-
+  fun selectSerialItem(id:Int)
   fun close()
 
   fun send()
 
-
+  fun listen()
 }
 
 enum class UsbPermission {
@@ -43,7 +43,7 @@ data class DeviceItem(
   var bauRate: Int = 9600,
   var stopBits:Int = 1,
   var dataBits:Int = 8,
-  var port:Int = UsbSerialPort.PARITY_NONE,
+  var parity:Int = UsbSerialPort.PARITY_NONE,
   val vendorId:Int=-1,
   val productId:Int=-1,
   val idOfItem:Int=-1,
@@ -52,6 +52,6 @@ data class DeviceItem(
     this.bauRate=bauRate
     this.stopBits=stopBits
     this.dataBits=dataBits
-    this.port=port
+    this.parity=port
   }
 }
