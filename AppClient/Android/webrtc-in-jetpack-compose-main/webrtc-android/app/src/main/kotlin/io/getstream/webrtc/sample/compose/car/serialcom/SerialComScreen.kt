@@ -15,11 +15,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import io.getstream.webrtc.sample.compose.ui.theme.Purple500
 import io.getstream.webrtc.sample.compose.ui.theme.Teal200
 
 @Composable
 fun SerialComScreen(
-   viewModel: SericalComViewModel
+   viewModel: SerialComViewModel
 ){
    val uiState by viewModel.uiStateFlow.collectAsState()
 
@@ -28,6 +29,7 @@ fun SerialComScreen(
        .padding(vertical = 10.dp)
 
    ){
+
       when(uiState){
         is SerialUiState.HasDeviceItem ->
           HasDeviceItemContent(uiState as SerialUiState.HasDeviceItem)
@@ -41,14 +43,19 @@ private fun HasDeviceItemContent(
   uiState: SerialUiState.HasDeviceItem
 ){
   Column() {
+
     uiState.deviceList.forEach { device ->
       DeviceItemCard(
+
         baud = device.bauRate
 
       )
     }
   }
 }
+
+
+
 @Composable
 private fun NoDeviceItemContent(
   uiState: SerialUiState.NoDeviceItem
@@ -68,8 +75,8 @@ private fun DeviceItemCard(
     modifier = modifier
       .padding(horizontal = 16.dp, vertical = 4.dp)
       .semantics { selected = isSelected },
-    backgroundColor = Teal200,
-    //onClick = toggleSelection
+    backgroundColor = if(isSelected)Teal200 else Purple500,
+   //onClick = toggleSelection
   ) {
     Column(
        modifier = Modifier

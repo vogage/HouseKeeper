@@ -1,13 +1,11 @@
 package io.getstream.webrtc.sample.compose.car.serialcom
 
 import com.hoho.android.usbserial.driver.UsbSerialPort
-import kotlinx.coroutines.flow.StateFlow
 
 
 interface SerialComManager{
 
-  val serialComStateflow:StateFlow<SerialComState>
-  val availableSerialItemsFlow:StateFlow<List<DeviceItem>>
+
   fun initial()
   fun start()
 
@@ -27,7 +25,12 @@ enum class UsbPermission {
   Granted,
   Denied
 }
+data class SerialSignalComData(
+  var state: SerialComState=SerialComState.Disable,
+  var msg:String=""
+){
 
+}
 enum class SerialComState {
   Active, // Offer and Answer messages has been sent
   Creating, // Creating session, offer has been sent
@@ -39,7 +42,7 @@ enum class SerialComState {
   Impossible, // We have less than two clients connected to the server
   Offline // unable to connect signaling server
 }
-data class DeviceItem(
+open class DeviceItem(
   var bauRate: Int = 9600,
   var stopBits:Int = 1,
   var dataBits:Int = 8,

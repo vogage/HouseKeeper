@@ -10,30 +10,29 @@ import kotlinx.coroutines.flow.stateIn
 
 
 sealed interface SerialUiState{
-  val GetDeviceItem:Boolean
+  val isSelectedDeviceItem:Boolean
   val errorMessage:List<ErrorMessage>
-  val hhtt:String
+  val msg:String
   data class NoDeviceItem(
-    override val GetDeviceItem: Boolean=false,
+    override val isSelectedDeviceItem: Boolean=false,
     override val errorMessage: List<ErrorMessage> = emptyList(),
-    override val hhtt:String="hhhhhhhhhhhhhhbbbbbb"
+    override val msg:String="",
+
   ):SerialUiState
 
   data class HasDeviceItem(
-    override val GetDeviceItem: Boolean=true,
-    override val errorMessage: List<ErrorMessage>,
-    val deviceList:List<DeviceItem>,
-    override val hhtt:String="hhhhhhhhhaaaaaaaaaaaa"
+    override val isSelectedDeviceItem: Boolean=true,
+    override val errorMessage: List<ErrorMessage> = emptyList(),
+    val deviceList:List<DeviceItem> = emptyList(),
+    override val msg:String="",
   ):SerialUiState
 }
 data class ErrorMessage(val id:Long,@StringRes val messageId:Int)
-class SericalComViewModel(
+class SerialComViewModel(
   private val serialComManager: SerialComManager
   ):ViewModel() {
 
-
-
-  private val _serialViewModelStateFlow = MutableStateFlow(CreateSerialViewModelSate(serialComManager))
+  private val _serialViewModelStateFlow = MutableStateFlow(SerialViewModelState())
 
   val uiStateFlow= _serialViewModelStateFlow// expose UI to serialComScreen
     .map{it.toUiState()}
@@ -43,14 +42,8 @@ class SericalComViewModel(
       initialValue = _serialViewModelStateFlow.value.toUiState() // provide a initial value
     )
 
-  private fun CreateSerialViewModelSate(serialComManager: SerialComManager):SerialViewModelState{
-    var vm=SerialViewModelState(
-      t= "fahfhhhh202406072049"
-    )
-    vm.devicesList?.add(DeviceItem(bauRate = 999999))
-    vm.devicesList?.add(DeviceItem(bauRate = 888888))
-    return vm
-  }
+
+
 
   fun test(){
     serialComManager.initial()
@@ -70,23 +63,21 @@ class SericalComViewModel(
 
 
 
+
 data class SerialViewModelState(
-   val t:String?=null,
+   val msg:String="",
+   var selectedId:Int?=-1,
    var devicesList:MutableList<DeviceItem>?=mutableListOf()
-){
-   fun toUiState():SerialUiState =
+) {
+  fun toUiState(): SerialUiState =
     if (devicesList == null || devicesList?.isEmpty() == true) {
-       SerialUiState.NoDeviceItem(
-         GetDeviceItem = false ,
-         errorMessage = emptyList()
-       )
-     } else {
-       SerialUiState.HasDeviceItem(
-         GetDeviceItem = false,
-         errorMessage = emptyList(),
-         deviceList = devicesList!!,
-         hhtt = t!!
-       )
-     }
-   }
+      SerialUiState.NoDeviceItem(
+      )
+    } else {
+      SerialUiState.HasDeviceItem(
+        deviceList = devicesList!!
+      )
+    }
+  }
+
 

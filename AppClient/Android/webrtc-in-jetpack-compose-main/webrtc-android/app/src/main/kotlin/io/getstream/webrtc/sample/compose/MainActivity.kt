@@ -35,7 +35,7 @@ import io.getstream.webrtc.sample.compose.car.CarManagerImp
 import io.getstream.webrtc.sample.compose.car.serialcom.SerialComManager
 import io.getstream.webrtc.sample.compose.car.serialcom.SerialComManagerImp
 import io.getstream.webrtc.sample.compose.car.serialcom.SerialComScreen
-import io.getstream.webrtc.sample.compose.car.serialcom.SericalComViewModel
+import io.getstream.webrtc.sample.compose.car.serialcom.SerialComViewModel
 import io.getstream.webrtc.sample.compose.ui.screens.stage.StageScreen
 import io.getstream.webrtc.sample.compose.ui.screens.video.VideoCallScreen
 import io.getstream.webrtc.sample.compose.ui.theme.WebrtcSampleComposeTheme
@@ -84,7 +84,7 @@ class MainActivity : ComponentActivity() {
                 StageScreen(state = state,{onOpenSerialCom=true}) { onCallScreen = true }
               }else{
 
-                SerialComScreen(SericalComViewModel(serialComManager))
+                SerialComScreen(SerialComViewModel(serialComManager))
               }
             }
             else {
