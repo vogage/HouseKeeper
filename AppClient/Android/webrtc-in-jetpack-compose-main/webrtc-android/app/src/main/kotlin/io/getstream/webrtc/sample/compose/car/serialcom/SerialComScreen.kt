@@ -22,7 +22,7 @@ import io.getstream.webrtc.sample.compose.ui.theme.Teal200
 fun SerialComScreen(
    viewModel: SerialComViewModel
 ){
-   val uiState by viewModel.uiStateFlow.collectAsState()
+
 
   Column (
      modifier = Modifier
@@ -30,27 +30,18 @@ fun SerialComScreen(
 
    ){
 
-      when(uiState){
-        is SerialUiState.HasDeviceItem ->
-          HasDeviceItemContent(uiState as SerialUiState.HasDeviceItem)
-        is SerialUiState.NoDeviceItem ->
-          NoDeviceItemContent(uiState as SerialUiState.NoDeviceItem)
+      when(){
+
       }
    }
 }
 @Composable
 private fun HasDeviceItemContent(
-  uiState: SerialUiState.HasDeviceItem
+
 ){
   Column() {
 
-    uiState.deviceList.forEach { device ->
-      DeviceItemCard(
 
-        baud = device.bauRate
-
-      )
-    }
   }
 }
 

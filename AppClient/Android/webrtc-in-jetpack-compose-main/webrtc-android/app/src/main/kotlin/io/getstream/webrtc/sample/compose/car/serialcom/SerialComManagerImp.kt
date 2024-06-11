@@ -11,6 +11,9 @@ import com.hoho.android.usbserial.driver.UsbSerialProber
 import com.hoho.android.usbserial.util.SerialInputOutputManager
 import io.getstream.log.taggedLogger
 import io.getstream.webrtc.sample.compose.BuildConfig
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 
 
 class SerialComManagerImp(private val context:Context):SerialComManager{
@@ -24,14 +27,41 @@ class SerialComManagerImp(private val context:Context):SerialComManager{
   private val withIoManager = false
 
   private var usbIoManager: SerialInputOutputManager? = null
+  private var _availableDevices:MutableList<DeviceItemImp> = mutableListOf()
+  private var availableSerialPortsFlow: Flow<MutableList<DeviceItemImp>>  = flow{ emit(mutableListOf())}
 
-  private var availableDevices:MutableList<DeviceItemImp> = mutableListOf()
+  override val availableDevicesFlow: Flow<List<DeviceItem>> = availableSerialPortsFlow.map{toDeviceItemList(it).toList()}
+
+  private data class DeviceItemImp(
+    val driver:UsbSerialDriver,
+    val item:DeviceItem=DeviceItem()
+  ): DeviceItem()
+  private fun toDeviceItemList(mutableList: MutableList<DeviceItemImp>):MutableList<DeviceItem>{
+    val res:MutableList<DeviceItem> = mutableListOf()
+    mutableList.forEach{it -> res.add(it.item)}
+    return res
+  }
+  private fun serialDeviceAdapter(driver: UsbSerialDriver, idOfItem: Int): DeviceItemImp {
+    return DeviceItemImp(
+      driver=driver,
+      item=DeviceItem(
+        bauRate = 9600,
+        stopBits = 1,
+        dataBits = 8,
+        parity = UsbSerialPort.PARITY_NONE,
+        vendorId=driver.device.vendorId,
+        productId = driver.device.productId,
+        idOfItem=idOfItem
+      )
+    )
+  }
 
   private var theSelectedSerialPortItem:DeviceItemImp?=null
 // the flow used for serial communication config ui
 
 
   private lateinit var usbManager: UsbManager
+
 
 
   //register an intent filter listen for usb device attach
@@ -92,46 +122,17 @@ class SerialComManagerImp(private val context:Context):SerialComManager{
     usbManager=context.getSystemService(Context.USB_SERVICE) as UsbManager
     val usbDefaultProber = UsbSerialProber.getDefaultProber()
     //val usbCustomProber: UsbSerialProber = CustomProber.getCustomProber()// to probe the specific serial device
-    availableDevices.clear()
+    _availableDevices.clear()
     for ((idOfItem, device) in usbManager.deviceList.values.withIndex()) {
       val driver = usbDefaultProber.probeDevice(device)
-      availableDevices.add(serialDeviceAdapter(driver,idOfItem))
-      if(theSelectedSerialPortItem==null) theSelectedSerialPortItem= availableDevices[0]
+      _availableDevices.add(serialDeviceAdapter(driver,idOfItem))
+      if(theSelectedSerialPortItem==null) theSelectedSerialPortItem= _availableDevices[0]
     }
 
   }
 
-  private data class DeviceItemImp(
-    val driver:UsbSerialDriver,
-    val item:DeviceItem=DeviceItem()
-  ): DeviceItem()
-  private fun toDeviceItemList(mutableList: MutableList<DeviceItemImp>):MutableList<DeviceItem>{
-    val res:MutableList<DeviceItem> = mutableListOf()
-    mutableList.forEach{it -> res.add(it.item)}
-    return res
-  }
-  private fun serialDeviceAdapter(driver: UsbSerialDriver, idOfItem: Int): DeviceItemImp {
-    return DeviceItemImp(
-      driver=driver,
-      item=DeviceItem(
-      bauRate = 9600,
-      stopBits = 1,
-      dataBits = 8,
-      parity = UsbSerialPort.PARITY_NONE,
-      vendorId=driver.device.vendorId,
-      productId = driver.device.productId,
-      idOfItem=idOfItem
-      )
-    )
-  }
-
-
-  override fun start() {
-
-  }
-
   override fun selectSerialItem(id:Int) {
-    availableDevices[id]
+    _availableDevices[id]
     //theSelectedSerialPortItem.usbSerialDriver=
   }
   override fun connect() {
