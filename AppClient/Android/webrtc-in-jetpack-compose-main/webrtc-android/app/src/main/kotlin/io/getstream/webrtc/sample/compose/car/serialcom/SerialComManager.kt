@@ -1,11 +1,13 @@
 package io.getstream.webrtc.sample.compose.car.serialcom
 
 import com.hoho.android.usbserial.driver.UsbSerialPort
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 
 
 interface SerialComManager{
-  val availableDevicesFlow: Flow<List<DeviceItem>>
+  val serialState: StateFlow<SerialComState>
+  fun getAvailableDevices():List<DeviceItem>
+  fun getSelectedDevice():DeviceItem
   fun initial()
   fun updateUsbAvailableDrivers()
   fun connect()
@@ -30,7 +32,8 @@ data class SerialData(
 enum class SerialComState {
   Creating, // Creating session, offer has been sent
   Active, // the serial port running
-  Ready, // Both clients available and ready to initiate session
+  Connected, // Both clients available and ready to initiate session
+  Working,// the serial port is in working
   UsbAttached,// new usb device attached to the phone
   UsbDetached, // usb device detached to the phone
   Disable,// the port cannot be connected

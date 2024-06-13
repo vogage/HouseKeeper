@@ -11,9 +11,9 @@ import com.hoho.android.usbserial.driver.UsbSerialProber
 import com.hoho.android.usbserial.util.SerialInputOutputManager
 import io.getstream.log.taggedLogger
 import io.getstream.webrtc.sample.compose.BuildConfig
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 
 
 class SerialComManagerImp(private val context:Context):SerialComManager{
@@ -28,13 +28,17 @@ class SerialComManagerImp(private val context:Context):SerialComManager{
 
   private var usbIoManager: SerialInputOutputManager? = null
   private var _availableDevices:MutableList<DeviceItemImp> = mutableListOf()
-  private var availableSerialPortsFlow: Flow<MutableList<DeviceItemImp>>  = flow{ emit(mutableListOf())}
 
-  override val availableDevicesFlow: Flow<List<DeviceItem>> = availableSerialPortsFlow.map{toDeviceItemList(it).toList()}
+  private var theSelectedSerialPortItem:DeviceItemImp = DeviceItemImp()
+// the flow used for serial communication config ui
+  private var _serialState= MutableStateFlow(SerialComState.Disable)
+  override val serialState: StateFlow<SerialComState> =_serialState
+
+  private lateinit var usbManager: UsbManager
 
   private data class DeviceItemImp(
-    val driver:UsbSerialDriver,
-    val item:DeviceItem=DeviceItem()
+    val driver: UsbSerialDriver? =null,
+    val item:DeviceItem=DeviceItem(idOfItem=-1)
   ): DeviceItem()
   private fun toDeviceItemList(mutableList: MutableList<DeviceItemImp>):MutableList<DeviceItem>{
     val res:MutableList<DeviceItem> = mutableListOf()
@@ -43,8 +47,8 @@ class SerialComManagerImp(private val context:Context):SerialComManager{
   }
   private fun serialDeviceAdapter(driver: UsbSerialDriver, idOfItem: Int): DeviceItemImp {
     return DeviceItemImp(
-      driver=driver,
-      item=DeviceItem(
+      driver =driver,
+      item =DeviceItem(
         bauRate = 9600,
         stopBits = 1,
         dataBits = 8,
@@ -55,15 +59,10 @@ class SerialComManagerImp(private val context:Context):SerialComManager{
       )
     )
   }
+  override fun getAvailableDevices(): List<DeviceItem> =
+    toDeviceItemList(_availableDevices)
 
-  private var theSelectedSerialPortItem:DeviceItemImp?=null
-// the flow used for serial communication config ui
-
-
-  private lateinit var usbManager: UsbManager
-
-
-
+  override fun getSelectedDevice(): DeviceItem =theSelectedSerialPortItem.item
   //register an intent filter listen for usb device attach
   override fun initial() {
     logger.d{"initial"}
@@ -72,13 +71,13 @@ class SerialComManagerImp(private val context:Context):SerialComManager{
     filter.addAction(UsbManager.ACTION_USB_ACCESSORY_DETACHED)
     mUsbBroadcastReceiver=instanceUsbBroadcastReceiver()
     context.registerReceiver(mUsbBroadcastReceiver,filter)
+    _serialState.update { SerialComState.Active }
   }
 
   //create a system broadcastReceiver to deal with the event with usb device attached
   private fun instanceUsbBroadcastReceiver():BroadcastReceiver{
     return object: BroadcastReceiver() {
       override fun onReceive(context: Context, intent: Intent) {
-
         when(intent.action){
           MY_INTENT_ACTION_PERMISSION_USB ->{//request user to visit the usb device
             synchronized(this) {
@@ -92,7 +91,7 @@ class SerialComManagerImp(private val context:Context):SerialComManager{
           }
           UsbManager.ACTION_USB_ACCESSORY_DETACHED->{
             synchronized(this) {
-              dealWithUsbDettached(intent)
+              dealWithUsbDetached(intent)
             }
           }
         }
@@ -113,9 +112,11 @@ class SerialComManagerImp(private val context:Context):SerialComManager{
 
   private fun dealWithUsbAttached(intent: Intent){
     updateUsbAvailableDrivers()
+    _serialState.update { SerialComState.UsbAttached }
   }
-  private fun dealWithUsbDettached(intent:Intent){
+  private fun dealWithUsbDetached(intent:Intent){
     updateUsbAvailableDrivers()
+    _serialState.update { SerialComState.UsbDetached }
   }
 
   override fun updateUsbAvailableDrivers(){
@@ -126,9 +127,7 @@ class SerialComManagerImp(private val context:Context):SerialComManager{
     for ((idOfItem, device) in usbManager.deviceList.values.withIndex()) {
       val driver = usbDefaultProber.probeDevice(device)
       _availableDevices.add(serialDeviceAdapter(driver,idOfItem))
-      if(theSelectedSerialPortItem==null) theSelectedSerialPortItem= _availableDevices[0]
     }
-
   }
 
   override fun selectSerialItem(id:Int) {
@@ -137,15 +136,13 @@ class SerialComManagerImp(private val context:Context):SerialComManager{
   }
   override fun connect() {
     logger.d{"Call:SerialComServer connect()"}
-    if(usbDriver==null){
-
-      return
-    }else{
+    if(usbDriver==null){ return }
+    else{
       val usbConnection = usbManager.openDevice(usbDriver!!.device)
       try {
         usbSerialPort?.open(usbConnection)
         try {
-          theSelectedSerialPortItem?.let {
+          theSelectedSerialPortItem.let {
             usbSerialPort?.setParameters(
               it.bauRate,
               it.dataBits,
@@ -153,6 +150,7 @@ class SerialComManagerImp(private val context:Context):SerialComManager{
               it.parity
             )
           }
+          _serialState.update { SerialComState.Connected }
         } catch (e: UnsupportedOperationException) {
 
         }
@@ -160,12 +158,7 @@ class SerialComManagerImp(private val context:Context):SerialComManager{
           usbIoManager = SerialInputOutputManager(usbSerialPort, MySerialListener)
           usbIoManager!!.start()
         }
-
-
-      } catch (e: Exception) {
-
-
-
+      } catch (_: Exception) {
 
       }
     }

@@ -10,7 +10,6 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
@@ -22,6 +21,7 @@ import io.getstream.webrtc.sample.compose.ui.theme.Teal200
 fun SerialComScreen(
    viewModel: SerialComViewModel
 ){
+  val uiState=viewModel.uiState.collectAsState()
 
 
   Column (
@@ -29,10 +29,8 @@ fun SerialComScreen(
        .padding(vertical = 10.dp)
 
    ){
+      uiState.value.deviceList
 
-      when(){
-
-      }
    }
 }
 @Composable
@@ -45,22 +43,14 @@ private fun HasDeviceItemContent(
   }
 }
 
-
-
-@Composable
-private fun NoDeviceItemContent(
-  uiState: SerialUiState.NoDeviceItem
-){
-
-}
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun DeviceItemCard(
-  //toggleSelection:()->Unit,
+  toggleSelection:()->Unit,
   modifier:Modifier=Modifier,
   isSelected:Boolean=false,
-  baud:Int=-1,
-  id:Int=-1
+  id:Int,
+  remark:String
 ): Unit {
   Card(
     modifier = modifier
@@ -85,7 +75,7 @@ private fun DeviceItemCard(
         modifier = Modifier
           .fillMaxWidth()
       ){
-        Text(baud.toString())
+        Text(remark)
       }
     }
 
