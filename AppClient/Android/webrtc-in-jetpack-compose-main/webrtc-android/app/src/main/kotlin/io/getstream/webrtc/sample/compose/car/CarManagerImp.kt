@@ -12,7 +12,7 @@ class CarManagerImp(
   override fun carReady() {
     val logger by taggedLogger("Call:CarReady")
     logger.d{"hfadsofjaofjawdlkgfjaljadlfkjadslkfjadsflkjasdklfjnadslkfjasdlkfjadslkfjnasdlkfjasdlkfjalsdkfjalskdfjklasde"}
-    serialcomserver.start()
+
   }
 
 }

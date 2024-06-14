@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.StateFlow
 
 interface SerialComManager{
   val serialState: StateFlow<SerialComState>
+
   fun getAvailableDevices():List<DeviceItem>
   fun getSelectedDevice():DeviceItem
   fun initial()
@@ -15,6 +16,9 @@ interface SerialComManager{
   fun close()
   fun send()
   fun listen()
+  fun getErrorMsg():String
+
+  fun getReceivedMsg():String
 }
 
 enum class UsbPermission {
@@ -37,7 +41,8 @@ enum class SerialComState {
   UsbAttached,// new usb device attached to the phone
   UsbDetached, // usb device detached to the phone
   Disable,// the port cannot be connected
-  Closed // the serialCom was closed
+  Closed, // the serialCom was closed
+  Error// some go wrong
 }
 
 open class DeviceItem(
