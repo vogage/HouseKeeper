@@ -14,7 +14,7 @@ interface SerialComManager{
   fun connect()
   fun selectSerialItem(id:Int)
   fun close()
-  fun send()
+  fun send(str:String)
   fun listen()
   fun getErrorMsg():String
 
@@ -34,10 +34,11 @@ data class SerialData(
 
 }
 enum class SerialComState {
-  Creating, // Creating session, offer has been sent
-  Active, // the serial port running
+  Initialized, //
+  Selected, // the serial port running
   Connected, // Both clients available and ready to initiate session
   Working,// the serial port is in working
+  Received,//the msg received
   UsbAttached,// new usb device attached to the phone
   UsbDetached, // usb device detached to the phone
   Disable,// the port cannot be connected

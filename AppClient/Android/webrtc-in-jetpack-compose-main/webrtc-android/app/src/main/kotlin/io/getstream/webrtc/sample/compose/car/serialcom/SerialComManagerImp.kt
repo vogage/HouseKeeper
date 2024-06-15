@@ -30,6 +30,7 @@ class SerialComManagerImp(private val context:Context):SerialComManager{
   private var _availableDevices:MutableList<DeviceItemImp> = mutableListOf()
 
   private var theSelectedSerialPortItem:DeviceItemImp = DeviceItemImp()
+  private var receivedSerialComData:String = "No msg"
 // the flow used for serial communication config ui
   private var _serialState= MutableStateFlow(SerialComState.Disable)
   override val serialState: StateFlow<SerialComState> =_serialState
@@ -37,6 +38,21 @@ class SerialComManagerImp(private val context:Context):SerialComManager{
   private lateinit var usbManager: UsbManager
 
   private var errorMsg:String=""
+
+  private class MySerialListener(
+    var _serialState:MutableStateFlow<SerialComState>,
+    var revData:String,
+    var errData:String):SerialInputOutputManager.Listener{
+    override fun onNewData(data: ByteArray?) {
+      _serialState.update { SerialComState.Received }
+      revData = data.toString()
+    }
+
+    override fun onRunError(e: java.lang.Exception?) {
+      _serialState.update { SerialComState.Error }
+      errData = e.toString()
+    }
+  }
   private data class DeviceItemImp(
     val driver: UsbSerialDriver? =null,
     val item:DeviceItem=DeviceItem(idOfItem=-1)
@@ -73,7 +89,7 @@ class SerialComManagerImp(private val context:Context):SerialComManager{
     filter.addAction(UsbManager.ACTION_USB_ACCESSORY_DETACHED)
     mUsbBroadcastReceiver=instanceUsbBroadcastReceiver()
     context.registerReceiver(mUsbBroadcastReceiver,filter)
-    _serialState.update { SerialComState.Active }
+    _serialState.update { SerialComState.Initialized }
   }
 
   //create a system broadcastReceiver to deal with the event with usb device attached
@@ -131,8 +147,8 @@ class SerialComManagerImp(private val context:Context):SerialComManager{
   }
 
   override fun selectSerialItem(id:Int) {
-    _availableDevices[id]
-    //theSelectedSerialPortItem.usbSerialDriver=
+    theSelectedSerialPortItem=_availableDevices[id]
+    _serialState.update { SerialComState.Selected }
   }
   override fun connect() {
     logger.d{"Call:SerialComServer connect()"}
@@ -156,7 +172,9 @@ class SerialComManagerImp(private val context:Context):SerialComManager{
           _serialState.update { SerialComState.Error }
         }
         if (withIoManager) {
-          usbIoManager = SerialInputOutputManager(usbSerialPort, MySerialListener)
+          usbIoManager = SerialInputOutputManager(
+            usbSerialPort,
+            MySerialListener(_serialState,receivedSerialComData,errorMsg))
         }
       } catch (e: Exception) {
         errorMsg=" usbSerialPort?.open(usbConnection) "+e.message.toString()
@@ -170,25 +188,16 @@ class SerialComManagerImp(private val context:Context):SerialComManager{
   }
 
   override fun close() {
+    usbIoManager.stop()
     context.unregisterReceiver(mUsbBroadcastReceiver)
   }
 
-  override fun send() {
-    TODO("Not yet implemented")
+  override fun send(str:String) {
+    usbIoManager.writeAsync(str.toByteArray())
   }
 
-  override fun getReceivedMsg(): String {
-    TODO("Not yet implemented")
-  }
-  companion object MySerialListener:SerialInputOutputManager.Listener{
-    override fun onNewData(data: ByteArray?) {
 
-    }
-
-    override fun onRunError(e: java.lang.Exception?) {
-      TODO("Not yet implemented")
-    }
-  }
+  override fun getReceivedMsg(): String = receivedSerialComData
 
 }
 

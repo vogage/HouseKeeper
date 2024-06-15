@@ -35,6 +35,11 @@ class SerialComViewModel(
               ui -> ui.copy(msg = " the serial port is connected!!!")
             }
           }
+          SerialComState.Received -> {
+            _uiState.update {
+              ui -> ui.copy(msg = serialCom.getReceivedMsg())
+            }
+          }
           SerialComState.UsbDetached -> {
             _uiState.update {
               ui -> ui.copy(deviceList = serialCom.getAvailableDevices(),
@@ -46,11 +51,13 @@ class SerialComViewModel(
               ui -> ui.copy(deviceList = serialCom.getAvailableDevices(),
                   msg="UsbAttached!!!")}
           }
-          SerialComState.Active -> {}
+          SerialComState.Selected -> {}
           SerialComState.Disable -> {
             _uiState.update { ui -> ui.copy(msg = "Disable!!!") }
           }
-          SerialComState.Creating -> {}
+          SerialComState.Initialized -> {
+            _uiState.update { ui->ui.copy(msg="Initialized!!!!") }
+          }
           SerialComState.Closed ->{}
           SerialComState.Working -> {}
           SerialComState.Error -> {
