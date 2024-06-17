@@ -6,7 +6,7 @@ import io.getstream.webrtc.sample.compose.car.serialcom.SerialComManager
 
 class CarManagerImp(
   private val context: Context,
-  override val serialcomserver: SerialComManager,
+  override val serialCom: SerialComManager,
 ):CarManager{
 
   override fun carReady() {

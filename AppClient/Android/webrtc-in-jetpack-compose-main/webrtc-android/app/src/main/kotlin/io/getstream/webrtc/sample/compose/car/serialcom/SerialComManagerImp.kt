@@ -4,7 +4,10 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbManager
+import android.os.Build
+import androidx.annotation.RequiresApi
 import com.hoho.android.usbserial.driver.UsbSerialDriver
 import com.hoho.android.usbserial.driver.UsbSerialPort
 import com.hoho.android.usbserial.driver.UsbSerialProber
@@ -24,18 +27,20 @@ class SerialComManagerImp(private val context:Context):SerialComManager{
   private var usbPermission: UsbPermission = UsbPermission.Unknown
   private var usbSerialPort: UsbSerialPort? = null
   private var usbDriver:UsbSerialDriver?=null
+  lateinit var device: UsbDevice
   private val withIoManager = true
-
+  private var isInitialized = false
   private lateinit var usbIoManager: SerialInputOutputManager
   private var _availableDevices:MutableList<DeviceItemImp> = mutableListOf()
 
-  private var theSelectedSerialPortItem:DeviceItemImp = DeviceItemImp()
+  private lateinit var theSelectedSerialPortItem:DeviceItemImp
   private var receivedSerialComData:String = "No msg"
 // the flow used for serial communication config ui
   private var _serialState= MutableStateFlow(SerialComState.Disable)
   override val serialState: StateFlow<SerialComState> =_serialState
 
   private lateinit var usbManager: UsbManager
+
 
   private var errorMsg:String=""
 
@@ -54,42 +59,50 @@ class SerialComManagerImp(private val context:Context):SerialComManager{
     }
   }
   private data class DeviceItemImp(
-    val driver: UsbSerialDriver? =null,
-    val item:DeviceItem=DeviceItem(idOfItem=-1)
+    var driver: UsbSerialDriver,
+    var item:DeviceItem=DeviceItem(idOfItem=-1)
   ): DeviceItem()
   private fun toDeviceItemList(mutableList: MutableList<DeviceItemImp>):MutableList<DeviceItem>{
     val res:MutableList<DeviceItem> = mutableListOf()
-    mutableList.forEach{it -> res.add(it.item)}
+    errorMsg += "toDeviceItemList \n"
+    mutableList.forEach{ it -> res.add(it.item)}
     return res
   }
-  private fun serialDeviceAdapter(driver: UsbSerialDriver, idOfItem: Int): DeviceItemImp {
+  private fun serialDeviceAdapter(newDriver: UsbSerialDriver, idOfItem: Int): DeviceItemImp {
     return DeviceItemImp(
-      driver =driver,
+      driver =newDriver,
       item =DeviceItem(
-        bauRate = 9600,
+        bauRate = 19200,
         stopBits = 1,
         dataBits = 8,
         parity = UsbSerialPort.PARITY_NONE,
-        vendorId=driver.device.vendorId,
-        productId = driver.device.productId,
+        vendorId=newDriver.device.vendorId,
+        productId = newDriver.device.productId,
         idOfItem=idOfItem
       )
     )
   }
-  override fun getAvailableDevices(): List<DeviceItem> =
-    toDeviceItemList(_availableDevices)
+
 
   override fun getErrorMsg(): String = errorMsg
   override fun getSelectedDevice(): DeviceItem = theSelectedSerialPortItem.item
   //register an intent filter listen for usb device attach
+  override fun clearMsg() {
+    errorMsg=""
+  }
+  @RequiresApi(Build.VERSION_CODES.TIRAMISU)
   override fun initial() {
     logger.d{"initial"}
-    val filter:IntentFilter =IntentFilter(MY_INTENT_ACTION_PERMISSION_USB)
+
+    val filter =IntentFilter(MY_INTENT_ACTION_PERMISSION_USB)
     filter.addAction(UsbManager.ACTION_USB_ACCESSORY_ATTACHED)
     filter.addAction(UsbManager.ACTION_USB_ACCESSORY_DETACHED)
+    filter.addAction(UsbManager.EXTRA_PERMISSION_GRANTED)
     mUsbBroadcastReceiver=instanceUsbBroadcastReceiver()
-    context.registerReceiver(mUsbBroadcastReceiver,filter)
+    context.registerReceiver(mUsbBroadcastReceiver,filter, Context.RECEIVER_NOT_EXPORTED)
     _serialState.update { SerialComState.Initialized }
+    errorMsg="initial"
+    isInitialized = true
   }
 
   //create a system broadcastReceiver to deal with the event with usb device attached
@@ -100,16 +113,19 @@ class SerialComManagerImp(private val context:Context):SerialComManager{
           MY_INTENT_ACTION_PERMISSION_USB ->{//request user to visit the usb device
             synchronized(this) {
               dealWithUsbPermissionResult(intent)
+              errorMsg+="MY_INTENT_ACTION_PERMISSION_USB"
             }
           }
           UsbManager.ACTION_USB_ACCESSORY_ATTACHED ->{
             synchronized(this) {
               dealWithUsbAttached(intent)
+              errorMsg+="ACTION_USB_ACCESSORY_ATTACHED"
             }
           }
           UsbManager.ACTION_USB_ACCESSORY_DETACHED->{
             synchronized(this) {
               dealWithUsbDetached(intent)
+              errorMsg+="ACTION_USB_ACCESSORY_ATTACHED"
             }
           }
         }
@@ -119,9 +135,9 @@ class SerialComManagerImp(private val context:Context):SerialComManager{
   }
 
   private fun dealWithUsbPermissionResult(intent:Intent){
-    usbPermission = if(intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED,false)){
+    usbPermission = if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
       UsbPermission.Granted
-    }else{
+    } else {
       UsbPermission.Denied
     }
   }
@@ -136,25 +152,37 @@ class SerialComManagerImp(private val context:Context):SerialComManager{
   }
 
   override fun updateUsbAvailableDrivers(){
-    usbManager=context.getSystemService(Context.USB_SERVICE) as UsbManager
+//    if(usbPermission != UsbPermission.Granted) {
+//      errorMsg+=usbPermission.toString()+"\n"
+//      return
+//    }
     val usbDefaultProber = UsbSerialProber.getDefaultProber()
     //val usbCustomProber: UsbSerialProber = CustomProber.getCustomProber()// to probe the specific serial device
+    usbManager=context.getSystemService(Context.USB_SERVICE) as UsbManager
     _availableDevices.clear()
     for ((idOfItem, device) in usbManager.deviceList.values.withIndex()) {
       val driver = usbDefaultProber.probeDevice(device)
-      _availableDevices.add(serialDeviceAdapter(driver,idOfItem))
+      errorMsg += driver?.toString() ?: ("driver == null from prober" + "\n")
+      _availableDevices.add(serialDeviceAdapter(driver,idOfItem)) //serialDeviceAdapter(driver: UsbSerialDriver, idOfItem: Int): DeviceItemImp
     }
+    if(_availableDevices.isNotEmpty()) theSelectedSerialPortItem=_availableDevices[0]
   }
-
+  override fun getAvailableDevices(): List<DeviceItem> =
+    toDeviceItemList(_availableDevices)
   override fun selectSerialItem(id:Int) {
     theSelectedSerialPortItem=_availableDevices[id]
     _serialState.update { SerialComState.Selected }
   }
   override fun connect() {
     logger.d{"Call:SerialComServer connect()"}
-    if(usbDriver==null){ return }
+    errorMsg+="call connect function"+"\n"
+    if(theSelectedSerialPortItem.idOfItem!=-1) usbDriver=theSelectedSerialPortItem.driver
+    if(usbDriver==null){
+      errorMsg+="usbDriver==null"+"\n"
+      return }
     else{
       val usbConnection = usbManager.openDevice(usbDriver!!.device)
+      errorMsg+="call usbManager.openDevice(usbDriver!!.device)"+"\n"
       try {
         usbSerialPort?.open(usbConnection)
         try {
@@ -168,8 +196,8 @@ class SerialComManagerImp(private val context:Context):SerialComManager{
           }
           _serialState.update { SerialComState.Connected }
         } catch (e: UnsupportedOperationException) {
-          errorMsg="usbSerialPort?.setParameters "+e.message.toString()
-          _serialState.update { SerialComState.Error }
+          errorMsg+="usbSerialPort?.setParameters "+e.message.toString()
+
         }
         if (withIoManager) {
           usbIoManager = SerialInputOutputManager(
@@ -177,8 +205,8 @@ class SerialComManagerImp(private val context:Context):SerialComManager{
             MySerialListener(_serialState,receivedSerialComData,errorMsg))
         }
       } catch (e: Exception) {
-        errorMsg=" usbSerialPort?.open(usbConnection) "+e.message.toString()
-        _serialState.update { SerialComState.Error }
+        errorMsg+=" usbSerialPort?.open(usbConnection) "+e.message.toString()+"\n"
+
       }
     }
   }
@@ -193,6 +221,13 @@ class SerialComManagerImp(private val context:Context):SerialComManager{
   }
 
   override fun send(str:String) {
+    _serialState.update { SerialComState.Working }
+    if(theSelectedSerialPortItem.driver==null||theSelectedSerialPortItem.idOfItem==-1) {
+      errorMsg += "theSelectedSerialPortItem.driver==null \n"
+      return
+    }
+    errorMsg += "theSelectedSerialPortItem.idOfItem:  "+theSelectedSerialPortItem.idOfItem+"\n"
+    _serialState.update { SerialComState.Error }
     usbIoManager.writeAsync(str.toByteArray())
   }
 

@@ -7,12 +7,16 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.Button
 import androidx.compose.material.Card
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.FloatingActionButton
+import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -32,23 +36,65 @@ fun SerialComScreen(
 ){
   val uiState by viewModel.uiState.collectAsState()
 
-  Text(
-    text = uiState.msg,
-    modifier = Modifier
-      .padding(vertical = 20.dp)
-  )
-  Column (
-     modifier = Modifier
-       .padding(vertical = 10.dp)
-   ){
+  Column {
+    Text(
+      text = uiState.msg,
+      modifier = Modifier
+        .padding(vertical = 20.dp)
+    )
+    Button(onClick = {viewModel.initial()}) {
+      Text(text = "initial")
+    }
+    Button(onClick = {viewModel.refresh()}) {
+      Text(text = "refresh")
+    }
+    Button(onClick = {viewModel.getMsg()}) {
+      Text(text = "getMsg")
+    }
+    Button(onClick = { viewModel.clearMsg() }) {
+      Text(text=" clearMsg ")
+    }
+    Button(onClick = { viewModel.connect() }) {
+      Text(text=" Connect ")
+    }
+    Column (
+      modifier = Modifier
+        .padding(vertical = 10.dp)
+    ){
       HasDeviceItemContent(devices = uiState.deviceList,
         toggleSelection = { /*TODO*/ },
         onClickAction ={viewModel.connect() }
       )
-   }
+    }
+    PaddingValues(vertical = 50.dp)
+    SerialComSendTextField(
+      text = uiState.sendStr,
+      onValueChanged = {str -> viewModel.updateSendStr(str) }
+    )
+    Button(onClick = {viewModel.sendMsg()}) {
+      Text(text = "send")
+    }
+  }
+
+
 }
 
-
+@Composable
+private fun SerialComSendTextField(
+  text: String,
+  onValueChanged : (String)->Unit,
+  modifier: Modifier=Modifier
+){
+  OutlinedTextField(
+    value = text,
+    onValueChange = {newText ->onValueChanged(newText)},
+    label={Text("input")},
+    modifier= modifier
+      .padding(20.dp)
+      .fillMaxWidth()
+      .height(80.dp)
+  )
+}
 
 @Composable
 private fun HasDeviceItemContent(
@@ -93,10 +139,11 @@ private fun DeviceItemCard(
       ItemSetsText("BauRate:"+item.bauRate)
       ItemSetsText("dataBits:"+item.dataBits)
       ItemSetsText("stopBits:"+item.stopBits)
+      ItemSetsText("idOfItem:"+item.idOfItem)
       FloatingActionButton(
         onClick = onClickAction,
 
-        modifier=Modifier
+        modifier= Modifier
           .padding(20.dp)
           .background(HaHa)
 

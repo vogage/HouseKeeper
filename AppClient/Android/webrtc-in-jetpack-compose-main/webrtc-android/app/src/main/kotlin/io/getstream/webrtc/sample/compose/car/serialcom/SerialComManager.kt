@@ -19,6 +19,7 @@ interface SerialComManager{
   fun getErrorMsg():String
 
   fun getReceivedMsg():String
+  fun clearMsg()
 }
 
 enum class UsbPermission {

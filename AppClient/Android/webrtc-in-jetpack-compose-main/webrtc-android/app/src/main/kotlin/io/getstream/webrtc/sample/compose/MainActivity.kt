@@ -60,7 +60,7 @@ class MainActivity : ComponentActivity() {
     //sessionManager.signalingClient.myws.send("hhhhhhhhhhhhhhhhhhhhhhjjjjjjjjjj"); //just test
     val carmanager:CarManager=CarManagerImp(
       context=this,
-      serialcomserver = SerialComManagerImp(this)
+      serialCom = SerialComManagerImp(this)
     )
 
     val serialComManager:SerialComManager=SerialComManagerImp(context=this)
