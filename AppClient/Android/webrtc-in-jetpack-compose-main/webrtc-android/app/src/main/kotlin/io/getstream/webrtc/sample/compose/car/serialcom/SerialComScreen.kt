@@ -54,8 +54,14 @@ fun SerialComScreen(
     Button(onClick = { viewModel.clearMsg() }) {
       Text(text=" clearMsg ")
     }
+      Button(onClick = { viewModel.requestPermission() }) {
+      Text(text="requestPermission")
+    }
     Button(onClick = { viewModel.connect() }) {
       Text(text=" Connect ")
+    }
+    Button(onClick = {viewModel.testSerial()}) {
+      Text(text = "testserial")
     }
     Column (
       modifier = Modifier
@@ -140,6 +146,7 @@ private fun DeviceItemCard(
       ItemSetsText("dataBits:"+item.dataBits)
       ItemSetsText("stopBits:"+item.stopBits)
       ItemSetsText("idOfItem:"+item.idOfItem)
+      ItemSetsText("productId:"+item.productId)
       FloatingActionButton(
         onClick = onClickAction,
 

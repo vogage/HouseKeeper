@@ -94,6 +94,8 @@ class SerialComViewModel(
 
 
   }
+  fun requestPermission(){serialCom.requestPermission()}
+  fun testSerial(){serialCom.testSerial()}
   fun connect(){ serialCom.connect() }
   fun initial(){serialCom.initial()}
   fun updateSendStr(str:String){

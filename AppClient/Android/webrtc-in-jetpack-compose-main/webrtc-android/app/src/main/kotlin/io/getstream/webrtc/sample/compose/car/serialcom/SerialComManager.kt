@@ -17,7 +17,8 @@ interface SerialComManager{
   fun send(str:String)
   fun listen()
   fun getErrorMsg():String
-
+  fun requestPermission()
+  fun testSerial()
   fun getReceivedMsg():String
   fun clearMsg()
 }
