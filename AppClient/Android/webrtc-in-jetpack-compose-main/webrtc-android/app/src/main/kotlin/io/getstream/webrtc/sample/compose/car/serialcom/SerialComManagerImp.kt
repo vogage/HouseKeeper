@@ -45,24 +45,6 @@ class SerialComManagerImp(private val context:Context):SerialComManager{
 
   private var errorMsg:String=""
 
-  private val usbReceiver = object : BroadcastReceiver() {
-
-    override fun onReceive(context: Context, intent: Intent) {
-      if (MY_INTENT_ACTION_PERMISSION_USB == intent.action) {
-        synchronized(this) {
-          val device: UsbDevice? = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE)
-
-          if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-            device?.apply {
-              // call method to set up device communication
-            }
-          } else {
-            errorMsg+="intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false"+"\n"
-          }
-        }
-      }
-    }
-  }
 
   private class MySerialListener(
     var _serialState:MutableStateFlow<SerialComState>,
@@ -118,6 +100,8 @@ class SerialComManagerImp(private val context:Context):SerialComManager{
     val filter =IntentFilter(MY_INTENT_ACTION_PERMISSION_USB)
     filter.addAction(UsbManager.ACTION_USB_ACCESSORY_ATTACHED)
     filter.addAction(UsbManager.ACTION_USB_ACCESSORY_DETACHED)
+    filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED)
+    filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED)
     filter.addAction(UsbManager.EXTRA_PERMISSION_GRANTED)
     mUsbBroadcastReceiver=instanceUsbBroadcastReceiver()
     context.registerReceiver(mUsbBroadcastReceiver,filter, Context.RECEIVER_NOT_EXPORTED)
@@ -131,6 +115,7 @@ class SerialComManagerImp(private val context:Context):SerialComManager{
   private fun instanceUsbBroadcastReceiver():BroadcastReceiver{
     return object: BroadcastReceiver() {
       override fun onReceive(context: Context, intent: Intent) {
+        errorMsg+="onReceive(context: Context, intent: Intent) "+"\n"
         when(intent.action){
           MY_INTENT_ACTION_PERMISSION_USB ->{//request user to visit the usb device
             synchronized(this) {
@@ -144,10 +129,22 @@ class SerialComManagerImp(private val context:Context):SerialComManager{
               errorMsg+="ACTION_USB_ACCESSORY_ATTACHED"
             }
           }
+          UsbManager.ACTION_USB_DEVICE_ATTACHED ->{
+            synchronized(this) {
+              dealWithUsbAttached(intent)
+              errorMsg+="ACTION_USB_Device_ATTACHED"
+            }
+          }
           UsbManager.ACTION_USB_ACCESSORY_DETACHED->{
             synchronized(this) {
               dealWithUsbDetached(intent)
               errorMsg+="ACTION_USB_ACCESSORY_ATTACHED"
+            }
+          }
+          UsbManager.ACTION_USB_DEVICE_DETACHED->{
+            synchronized(this) {
+              dealWithUsbDetached(intent)
+              errorMsg+="ACTION_USB_ACCESSORY_DETACHED"
             }
           }
         }
@@ -158,17 +155,25 @@ class SerialComManagerImp(private val context:Context):SerialComManager{
 
   private fun dealWithUsbPermissionResult(intent:Intent){
     usbPermission = if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-      errorMsg+=" UsbPermission.Granted" +"\n"
-      UsbPermission.Granted
-
-    } else {
       errorMsg+=" UsbPermission.Denied" +"\n"
       UsbPermission.Denied
+    } else {
+      errorMsg+=" UsbPermission.Granted" +"\n"
+      try{
+         connect()
+      }catch (_:Exception){
+
+      }
+      UsbPermission.Granted
+
     }
   }
 
   private fun dealWithUsbAttached(intent: Intent){
     updateUsbAvailableDrivers()
+    //select the default serial port
+    //request the permission
+    requestPermission()
     _serialState.update { SerialComState.UsbAttached }
   }
   private fun dealWithUsbDetached(intent:Intent){
@@ -290,7 +295,7 @@ class SerialComManagerImp(private val context:Context):SerialComManager{
   }
   override fun send(str:String) {
     _serialState.update { SerialComState.Working }
-    if(theSelectedSerialPortItem.driver==null||theSelectedSerialPortItem.idOfItem==-1) {
+    if(theSelectedSerialPortItem.idOfItem==-1) {
       errorMsg += "theSelectedSerialPortItem.driver==null \n"
       return
     }
