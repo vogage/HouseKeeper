@@ -21,6 +21,8 @@ interface SerialComManager{
   fun testSerial()
   fun getReceivedMsg():String
   fun clearMsg()
+
+
 }
 
 enum class UsbPermission {
@@ -30,20 +32,14 @@ enum class UsbPermission {
   Denied
 }
 data class SerialData(
-  var state: SerialComState=SerialComState.Disable,  //serialComState
-  var msg:String="" // additional message
+  var signalMsg:String="", // additional message
+  var revData:String="" // the received data
 ){
 
 }
 enum class SerialComState {
   Initialized, //
-  Selected, // the serial port running
-  Connected, // Both clients available and ready to initiate session
   Working,// the serial port is in working
-  Received,//the msg received
-  UsbAttached,// new usb device attached to the phone
-  UsbDetached, // usb device detached to the phone
-  Disable,// the port cannot be connected
   Closed, // the serialCom was closed
   Error// some go wrong
 }

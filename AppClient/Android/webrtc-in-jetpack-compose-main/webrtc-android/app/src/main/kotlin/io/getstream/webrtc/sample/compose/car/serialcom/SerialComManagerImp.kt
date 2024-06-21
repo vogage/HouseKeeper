@@ -5,7 +5,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbManager
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -21,37 +20,34 @@ import kotlinx.coroutines.flow.update
 
 
 class SerialComManagerImp(private val context:Context):SerialComManager{
-  private val logger by taggedLogger("Call:SerialComServer")
+  private val logger by taggedLogger("Call:SerialComManagerImp")
   private var mUsbBroadcastReceiver: BroadcastReceiver? = null
-  private val MY_INTENT_ACTION_GRANT_USB: String = BuildConfig.APPLICATION_ID + ".GRANT_USB"
   private val MY_INTENT_ACTION_PERMISSION_USB:String = BuildConfig.APPLICATION_ID+ "USB_PERMISSION"
   private var usbPermission: UsbPermission = UsbPermission.Unknown
   private var usbSerialPort: UsbSerialPort? = null
   private var usbDriver:UsbSerialDriver?=null
-  lateinit var device: UsbDevice
   private val withIoManager = true
-  private var isInitialized = false
   private lateinit var usbIoManager: SerialInputOutputManager
   private var _availableDevices:MutableList<DeviceItemImp> = mutableListOf()
 
   private lateinit var theSelectedSerialPortItem:DeviceItemImp
   private var receivedSerialComData:String = "No msg"
 // the flow used for serial communication config ui
-  private var _serialState= MutableStateFlow(SerialComState.Disable)
+  private var _serialState= MutableStateFlow(SerialComState.Closed)
   override val serialState: StateFlow<SerialComState> =_serialState
 
+  private lateinit var serialData:SerialData
   private lateinit var usbManager: UsbManager
 
 
   private var errorMsg:String=""
-
+  private var isInitialized = false
 
   private class MySerialListener(
     var _serialState:MutableStateFlow<SerialComState>,
     var revData:String,
     var errData:String):SerialInputOutputManager.Listener{
     override fun onNewData(data: ByteArray?) {
-      _serialState.update { SerialComState.Received }
       revData = data.toString()
     }
 
@@ -86,7 +82,6 @@ class SerialComManagerImp(private val context:Context):SerialComManager{
     )
   }
 
-
   override fun getErrorMsg(): String = errorMsg
   override fun getSelectedDevice(): DeviceItem = theSelectedSerialPortItem.item
   //register an intent filter listen for usb device attach
@@ -96,7 +91,7 @@ class SerialComManagerImp(private val context:Context):SerialComManager{
   @RequiresApi(Build.VERSION_CODES.TIRAMISU)
   override fun initial() {
     logger.d{"initial"}
-
+    if(isInitialized)return
     val filter =IntentFilter(MY_INTENT_ACTION_PERMISSION_USB)
     filter.addAction(UsbManager.ACTION_USB_ACCESSORY_ATTACHED)
     filter.addAction(UsbManager.ACTION_USB_ACCESSORY_DETACHED)
@@ -105,10 +100,8 @@ class SerialComManagerImp(private val context:Context):SerialComManager{
     filter.addAction(UsbManager.EXTRA_PERMISSION_GRANTED)
     mUsbBroadcastReceiver=instanceUsbBroadcastReceiver()
     context.registerReceiver(mUsbBroadcastReceiver,filter, Context.RECEIVER_NOT_EXPORTED)
-
     _serialState.update { SerialComState.Initialized }
-    errorMsg="initial"
-    isInitialized = true
+    isInitialized=true
   }
 
   //create a system broadcastReceiver to deal with the event with usb device attached
@@ -174,11 +167,11 @@ class SerialComManagerImp(private val context:Context):SerialComManager{
     //select the default serial port
     //request the permission
     requestPermission()
-    _serialState.update { SerialComState.UsbAttached }
+
   }
   private fun dealWithUsbDetached(intent:Intent){
     updateUsbAvailableDrivers()
-    _serialState.update { SerialComState.UsbDetached }
+
   }
 
   override fun updateUsbAvailableDrivers(){
@@ -204,7 +197,7 @@ class SerialComManagerImp(private val context:Context):SerialComManager{
     toDeviceItemList(_availableDevices)
   override fun selectSerialItem(id:Int) {
     theSelectedSerialPortItem=_availableDevices[id]
-    _serialState.update { SerialComState.Selected }
+
   }
   override fun requestPermission(){
     val permissionIntent = PendingIntent.getBroadcast(context, 0,
@@ -246,7 +239,7 @@ class SerialComManagerImp(private val context:Context):SerialComManager{
               it.parity
             )
           }
-          _serialState.update { SerialComState.Connected }
+          _serialState.update { SerialComState.Working }
         } catch (e: UnsupportedOperationException) {
           errorMsg+="usbSerialPort?.setParameters "+e.message.toString()
 

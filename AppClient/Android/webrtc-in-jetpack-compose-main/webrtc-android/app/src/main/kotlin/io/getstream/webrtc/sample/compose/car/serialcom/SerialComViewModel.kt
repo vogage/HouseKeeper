@@ -3,6 +3,7 @@ package io.getstream.webrtc.sample.compose.car.serialcom
 import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import io.getstream.log.taggedLogger
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -21,6 +22,8 @@ data class ErrorMessage(val id:Long,@StringRes val messageId:Int)
 class SerialComViewModel(
   private val serialCom: SerialComManager
   ):ViewModel() {
+  private val logger by taggedLogger("Call:SerialComViewModel")
+
   private var _uiState = MutableStateFlow(SerialUiState())
   val uiState: StateFlow<SerialUiState> = _uiState
 
@@ -31,38 +34,12 @@ class SerialComViewModel(
     viewModelScope.launch {
       serialCom.serialState.collect{ it ->
         when(it){
-          SerialComState.Connected -> {
-            _uiState.update {
-              ui -> ui.copy(msg = " the serial port is connected!!!")
-            }
-          }
-          SerialComState.Received -> {
-            _uiState.update {
-              ui -> ui.copy(msg = serialCom.getReceivedMsg())
-            }
-          }
-          SerialComState.UsbDetached -> {
-            _uiState.update {
-              ui -> ui.copy(deviceList = serialCom.getAvailableDevices(),
-                  msg="UsbDetached!!!")
-            }
-          }
-          SerialComState.UsbAttached ->{
-            _uiState.update {
-              ui -> ui.copy(deviceList = serialCom.getAvailableDevices(),
-                  msg="UsbAttached!!!")}
-          }
-          SerialComState.Selected -> {}
-          SerialComState.Disable -> {
-            _uiState.update { ui -> ui.copy(msg = "Disable!!!") }
-          }
           SerialComState.Initialized -> {
-            _uiState.update { ui->ui.copy(msg="Initialized!!!!") }
+            _uiState.update { ui->ui.copy(msg="hhhhhiniiiii") }
           }
           SerialComState.Closed ->{}
           SerialComState.Working -> {}
           SerialComState.Error -> {
-            _uiState.update { ui -> ui.copy(msg = "Error!!! \n"+serialCom.getErrorMsg()) }
           }
         }
       }
