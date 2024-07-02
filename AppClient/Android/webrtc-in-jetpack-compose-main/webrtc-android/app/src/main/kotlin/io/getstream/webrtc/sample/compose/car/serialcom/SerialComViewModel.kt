@@ -20,31 +20,39 @@ data class ErrorMessage(val id:Long,@StringRes val messageId:Int)
 
 
 class SerialComViewModel(
-  private val serialCom: SerialComManager
+  private val serialCom: SerialComManager,
   ):ViewModel() {
   private val logger by taggedLogger("Call:SerialComViewModel")
 
   private var _uiState = MutableStateFlow(SerialUiState())
   val uiState: StateFlow<SerialUiState> = _uiState
 
+
   init {
+    serialCom.initial()
     observeSerialComState()
+
   }
+
   private fun observeSerialComState(){
     viewModelScope.launch {
-      serialCom.serialState.collect{ it ->
-        when(it){
+      serialCom.serialState.collect { it ->
+        when (it) {
           SerialComState.Initialized -> {
-            _uiState.update { ui->ui.copy(msg="hhhhhiniiiii") }
+            _uiState.update { ui -> ui.copy(msg = "initialized") }
           }
-          SerialComState.Closed ->{}
+
+          SerialComState.Closed -> {}
           SerialComState.Working -> {}
           SerialComState.Error -> {
+            _uiState.update{ ui -> ui.copy(msg = serialCom.getErrorMsg())}
           }
         }
       }
     }
   }
+
+
 
 
 

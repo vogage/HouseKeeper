@@ -118,25 +118,25 @@ class SerialComManagerImp(private val context:Context):SerialComManager{
           }
           UsbManager.ACTION_USB_ACCESSORY_ATTACHED ->{
             synchronized(this) {
-              dealWithUsbAttached(intent)
+              dealWithUsbAttached()
               errorMsg+="ACTION_USB_ACCESSORY_ATTACHED"
             }
           }
           UsbManager.ACTION_USB_DEVICE_ATTACHED ->{
             synchronized(this) {
-              dealWithUsbAttached(intent)
+              dealWithUsbAttached()
               errorMsg+="ACTION_USB_Device_ATTACHED"
             }
           }
           UsbManager.ACTION_USB_ACCESSORY_DETACHED->{
             synchronized(this) {
-              dealWithUsbDetached(intent)
+              dealWithUsbDetached()
               errorMsg+="ACTION_USB_ACCESSORY_ATTACHED"
             }
           }
           UsbManager.ACTION_USB_DEVICE_DETACHED->{
             synchronized(this) {
-              dealWithUsbDetached(intent)
+              dealWithUsbDetached()
               errorMsg+="ACTION_USB_ACCESSORY_DETACHED"
             }
           }
@@ -162,16 +162,14 @@ class SerialComManagerImp(private val context:Context):SerialComManager{
     }
   }
 
-  private fun dealWithUsbAttached(intent: Intent){
+  private fun dealWithUsbAttached(){
     updateUsbAvailableDrivers()
-    //select the default serial port
     //request the permission
     requestPermission()
 
   }
-  private fun dealWithUsbDetached(intent:Intent){
+  private fun dealWithUsbDetached(){
     updateUsbAvailableDrivers()
-
   }
 
   override fun updateUsbAvailableDrivers(){
@@ -256,6 +254,7 @@ class SerialComManagerImp(private val context:Context):SerialComManager{
       }
     }
   }
+
 
   override fun testSerial() {
     val text = byteArrayOf(0xAA.toByte(),0x00.toByte(),0x01.toByte(), 0x00.toByte(),0x00.toByte(),0x00.toByte(),0x00.toByte(),0xAB.toByte())

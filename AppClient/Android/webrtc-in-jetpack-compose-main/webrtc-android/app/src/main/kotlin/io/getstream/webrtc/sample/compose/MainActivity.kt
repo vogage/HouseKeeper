@@ -32,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import io.getstream.webrtc.sample.compose.car.CarManager
 import io.getstream.webrtc.sample.compose.car.CarManagerImp
+import io.getstream.webrtc.sample.compose.car.JoyStick.JoyStickScreen
 import io.getstream.webrtc.sample.compose.car.serialcom.SerialComManager
 import io.getstream.webrtc.sample.compose.car.serialcom.SerialComManagerImp
 import io.getstream.webrtc.sample.compose.car.serialcom.SerialComScreen
@@ -75,6 +76,7 @@ class MainActivity : ComponentActivity() {
           ) {
             var onCallScreen by remember { mutableStateOf(false) }
             var onOpenSerialCom by remember{ mutableStateOf(false) }
+            var onJoyStickScreen by remember{ mutableStateOf(false) }
             val state by sessionManager.signalingClient.sessionStateFlow.collectAsState()
 
 
@@ -83,8 +85,11 @@ class MainActivity : ComponentActivity() {
               if(!onOpenSerialCom){
                 StageScreen(state = state,{onOpenSerialCom=true}) { onCallScreen = true }
               }else{
-
-                SerialComScreen(SerialComViewModel(serialComManager))
+                if(onJoyStickScreen) {
+                  JoyStickScreen()
+                }else{
+                  SerialComScreen(this, SerialComViewModel(serialComManager),{onJoyStickScreen=true})
+                }
               }
             }
             else {

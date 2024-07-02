@@ -23,6 +23,7 @@ interface SerialComManager{
   fun clearMsg()
 
 
+
 }
 
 enum class UsbPermission {
