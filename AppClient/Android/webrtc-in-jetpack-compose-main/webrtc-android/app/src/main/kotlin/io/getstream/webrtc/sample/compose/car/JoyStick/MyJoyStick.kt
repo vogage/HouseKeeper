@@ -48,8 +48,8 @@ fun MyJoyStick(
 
   // Swipe size in px
   val buttonSizePx = with(LocalDensity.current) { buttonSize.toPx() }
-  val dragSizePx = buttonSizePx * 1.5f
-
+ // val dragSizePx = buttonSizePx * 1.5f
+  val dragSizePx = buttonSizePx
   // Drag offset
   val offsetX = remember { Animatable(0f) }
   val offsetY = remember { Animatable(0f) }
@@ -117,6 +117,7 @@ fun MyJoyStick(
               scope.launch {
                 val newOffsetX = offsetX.value + dragAmount.x * directionFactor
                 val newOffsetY = offsetY.value + dragAmount.y
+                viewModel.refreshOffset(newOffsetX,newOffsetY)
 
                 if (
                   sqrt(newOffsetX.pow(2) + newOffsetY.pow(2)) < dragSizePx
