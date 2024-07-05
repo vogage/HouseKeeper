@@ -35,12 +35,13 @@ import kotlin.math.sqrt
 
 @Composable
 fun MyJoyStick(
-
+  viewModel: MyJoyStickViewModel
 ) {
   // Support RTL
   val layoutDirection = LocalLayoutDirection.current
   val directionFactor = if (layoutDirection == LayoutDirection.Rtl) -1 else 1
   val scope = rememberCoroutineScope()
+
 
   val buttonSize = 90.dp
 
@@ -69,7 +70,7 @@ fun MyJoyStick(
 
   Box(
     modifier = Modifier
-      .size(buttonSize * 2)
+      .size(buttonSize*2)
       .background(Color.White, CircleShape)
       .border(2.dp, Color.Black,CircleShape)
     ,
@@ -142,7 +143,11 @@ fun MyJoyStick(
     }
   }
 
+  Box(modifier = Modifier.size(40.dp)){
+
+  }
 }
+
 
 
 

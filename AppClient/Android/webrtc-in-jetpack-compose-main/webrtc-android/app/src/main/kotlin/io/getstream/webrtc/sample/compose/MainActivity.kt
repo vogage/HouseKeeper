@@ -33,6 +33,7 @@ import androidx.compose.ui.Modifier
 import io.getstream.webrtc.sample.compose.car.CarManager
 import io.getstream.webrtc.sample.compose.car.CarManagerImp
 import io.getstream.webrtc.sample.compose.car.JoyStick.JoyStickScreen
+import io.getstream.webrtc.sample.compose.car.JoyStick.MyJoyStickViewModel
 import io.getstream.webrtc.sample.compose.car.serialcom.SerialComManager
 import io.getstream.webrtc.sample.compose.car.serialcom.SerialComManagerImp
 import io.getstream.webrtc.sample.compose.car.serialcom.SerialComScreen
@@ -86,7 +87,7 @@ class MainActivity : ComponentActivity() {
                 StageScreen(state = state,{onOpenSerialCom=true}) { onCallScreen = true }
               }else{
                 if(onJoyStickScreen) {
-                  JoyStickScreen()
+                  JoyStickScreen(MyJoyStickViewModel(serialComManager))
                 }else{
                   SerialComScreen(this, SerialComViewModel(serialComManager),{onJoyStickScreen=true})
                 }
