@@ -12,15 +12,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
@@ -49,23 +45,13 @@ fun MyJoyStick(
   // Swipe size in px
   val buttonSizePx = with(LocalDensity.current) { buttonSize.toPx() }
  // val dragSizePx = buttonSizePx * 1.5f
-  val dragSizePx = buttonSizePx
   // Drag offset
   val offsetX = remember { Animatable(0f) }
   val offsetY = remember { Animatable(0f) }
 
-  var isDragging by remember { mutableStateOf(false) }
-
-  var currentPosition by remember { mutableStateOf<Position?>(null) }
 
   LaunchedEffect(offsetX.value, offsetY.value) {
-
-    val newPosition = getPosition(
-      offset = Offset(offsetX.value, offsetY.value),
-      buttonSizePx = buttonSizePx
-    )
-
-    currentPosition = newPosition
+    viewModel.refreshPosition(offsetX.value, offsetY.value)
   }
 
   Box(
@@ -91,7 +77,7 @@ fun MyJoyStick(
         .pointerInput(Unit) {
           detectDragGestures(
             onDragStart = {
-              isDragging = true
+              viewModel.refreshIsDragging(true)
             },
             onDragEnd = {
               scope.launch {
@@ -100,7 +86,7 @@ fun MyJoyStick(
               scope.launch {
                 offsetY.animateTo(0f)
               }
-              isDragging = false
+              viewModel.refreshIsDragging(false)
             },
             onDragCancel = {
               scope.launch {
@@ -109,7 +95,7 @@ fun MyJoyStick(
               scope.launch {
                 offsetY.animateTo(0f)
               }
-              isDragging = false
+              viewModel.refreshIsDragging(false)
             },
             onDrag = { change, dragAmount ->
               change.consume()
@@ -118,18 +104,17 @@ fun MyJoyStick(
                 val newOffsetX = offsetX.value + dragAmount.x * directionFactor
                 val newOffsetY = offsetY.value + dragAmount.y
                 viewModel.refreshOffset(newOffsetX,newOffsetY)
-
                 if (
-                  sqrt(newOffsetX.pow(2) + newOffsetY.pow(2)) < dragSizePx
+                  sqrt(newOffsetX.pow(2) + newOffsetY.pow(2)) < buttonSizePx
                 ) {
                   offsetX.snapTo(newOffsetX)
                   offsetY.snapTo(newOffsetY)
                 } else if (
-                  sqrt(offsetX.value.pow(2) + newOffsetY.pow(2)) < dragSizePx
+                  sqrt(offsetX.value.pow(2) + newOffsetY.pow(2)) < buttonSizePx
                 ) {
                   offsetY.snapTo(newOffsetY)
                 } else if (
-                  sqrt(newOffsetX.pow(2) + offsetY.value.pow(2)) < dragSizePx
+                  sqrt(newOffsetX.pow(2) + offsetY.value.pow(2)) < buttonSizePx
                 ) {
                   offsetX.snapTo(newOffsetX)
                 }

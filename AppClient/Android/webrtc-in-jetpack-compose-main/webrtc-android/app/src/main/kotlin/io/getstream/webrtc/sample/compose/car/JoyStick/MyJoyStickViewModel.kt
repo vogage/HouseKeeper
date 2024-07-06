@@ -12,8 +12,8 @@ import kotlinx.coroutines.withContext
 
 data class MyJoyStickUiState(
   val msg : String= "here is msg",
-  var x:Int=0,
-  var y:Int=0,
+  var x:Float=0f,
+  var y:Float=0f,
   var isDragging:Boolean=false,
   var currentPosition:Position=Position.Top,
   val buttonSizePx : Float =0f
@@ -34,17 +34,28 @@ class MyJoyStickViewModel(
     }
   }
 
-  fun refreshOffset(newOffsetX:Float,newOffsetY:Float){
+  fun refreshPosition(newOffsetX:Float,newOffsetY:Float){
     val newPosition = getPosition(
       offset = Offset(newOffsetX, newOffsetY),
       buttonSizePx = uiState.value.buttonSizePx
     )
-
-    if(newPosition!=null) {
-      _uiState.update {
-        MyJoyStickUiState(currentPosition = newPosition, isDragging = true)
+    if (newPosition != null) {
+    _uiState.update {
+        MyJoyStickUiState(currentPosition = newPosition)
       }
     }
+  }
+  fun refreshIsDragging(flag:Boolean){
+    _uiState.update { MyJoyStickUiState(isDragging = flag) }
+  }
+  fun refreshOffset(newOffsetX:Float,newOffsetY:Float){
+      _uiState.update {
+        MyJoyStickUiState(
+          x=newOffsetX,
+          y=newOffsetY,
+          isDragging = true
+        )
+      }
   }
 
 }
