@@ -27,3 +27,8 @@ val Disabled = Color(0xFFFF1A24)
 val HaHa= Color(0xFFFFACD)
 val Black=Color(0xFF000000)
 val TRANSPARENT=Color(0x00000000)
+
+val LightGray=Color(0x66D9D9D9)
+val LightBlue = Color(0xB2A4F0FB)
+val MidBlue=Color(0xB2A2D7EE)
+val LightGreen= Color(0x4A2DD7D7)

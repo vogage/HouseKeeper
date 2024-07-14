@@ -26,12 +26,16 @@ fun JoyStickScreen(
     ){
       val uiState by joyStickViewModel.uiState.collectAsState()
       Spacer(modifier = Modifier.height(300.dp))
+
       Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier.fillMaxWidth()
       ) {
+        Column {
+          MyJoyStick(joyStickViewModel)
+          MyJoyStick2(joyStickViewModel)
+        }
 
-        MyJoyStick(joyStickViewModel)
       }
       Spacer(modifier = Modifier.height(30.dp))
       Text(
