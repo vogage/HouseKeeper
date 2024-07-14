@@ -36,7 +36,8 @@ import io.getstream.webrtc.sample.compose.ui.theme.Teal200
 fun SerialComScreen(
     context: Context,
    viewModel: SerialComViewModel,
-    onJoyStickScreenOpen:()->Unit
+    onJoyStickScreenOpen:()->Unit,
+    onStateBarScreenOpen:()->Unit
 ){
   val uiState by viewModel.uiState.collectAsState()
 
@@ -47,6 +48,9 @@ fun SerialComScreen(
         .padding(vertical = 20.dp)
     )
    // MyJoyStick()
+    Button(onClick = {onStateBarScreenOpen.invoke()}){
+      Text(text="stateBar")
+    }
     Button(onClick = {onJoyStickScreenOpen.invoke()}) {
       Text(text = "JoyStick")
     }
