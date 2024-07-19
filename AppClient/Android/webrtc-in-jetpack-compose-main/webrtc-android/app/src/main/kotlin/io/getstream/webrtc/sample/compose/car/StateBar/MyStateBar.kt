@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
@@ -18,6 +20,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlin.math.roundToInt
 
 private fun Density.createStripeBrush(
   stripeColor: Color,
@@ -39,10 +42,14 @@ private fun Density.createStripeBrush(
 }
 
 @Composable
-fun CarStateBar1(){
-
+fun CarStateBar1(
+  viewModel: MyStateBarViewModel
+){
+    val uiState by viewModel.uiState.collectAsState()
     val stripeWidth=2.dp
     val strokeWidth=10f
+
+
     Box(
     modifier= Modifier
       .size(40.dp, 40.dp)
@@ -63,17 +70,17 @@ fun CarStateBar1(){
             style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
           )
           drawArc(
-            color= Color.Red,
+            color = Color.Red,
             startAngle = -90f,
             sweepAngle = -270f,
             useCenter = false,
-            style = Stroke(width = strokeWidth,cap=StrokeCap.Round)
+            style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
           )
         }
       },
       contentAlignment= Alignment.Center
     ){
-      Text(text="88",
+      Text(text=uiState.batteryVolume.roundToInt().toString(),
         fontSize = 24.sp,
         color = Color.Black,
       )
