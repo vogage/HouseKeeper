@@ -7,7 +7,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 
 data class StateBarData(
-  var batteryVolume:Float=0f
+  var batteryVolume:Float=0f,
+  var signalStrength:Float=0f
 )
 class MyStateBarViewModel(
   private val serialCom: SerialComManager

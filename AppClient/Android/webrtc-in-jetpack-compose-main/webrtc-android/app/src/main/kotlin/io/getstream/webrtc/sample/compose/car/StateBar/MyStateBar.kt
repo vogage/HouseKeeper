@@ -2,7 +2,9 @@ package io.getstream.webrtc.sample.compose.car.StateBar
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -16,12 +18,25 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.getstream.webrtc.sample.compose.R
 import kotlin.math.roundToInt
 
+
+@Composable
+fun CarStatusBar(
+  viewModel: MyStateBarViewModel
+){
+  val uiState by viewModel.uiState.collectAsState()
+  Row{
+    CarBatteryVolume(viewModel = viewModel)
+    CarSignalStrength(stren = uiState.signalStrength)
+  }
+}
 private fun Density.createStripeBrush(
   stripeColor: Color,
   stripeWidth: Dp,
@@ -42,7 +57,7 @@ private fun Density.createStripeBrush(
 }
 
 @Composable
-fun CarStateBar1(
+fun CarBatteryVolume(
   viewModel: MyStateBarViewModel
 ){
     val uiState by viewModel.uiState.collectAsState()
@@ -89,4 +104,27 @@ fun CarStateBar1(
 
 
 
+}
+
+
+@Composable
+fun CarSignalStrength(
+  stren:Float
+){
+  Box(
+    contentAlignment = Alignment.CenterEnd
+  ) {
+    Row(
+      verticalAlignment = Alignment.CenterVertically
+    ) {
+      Icon(
+        painter = painterResource(R.drawable.baseline_directions_car_24),
+        "baseline car"
+      )
+      Text(
+        text="$stren%",
+        fontSize = 24.sp
+      )
+    }
+  }
 }

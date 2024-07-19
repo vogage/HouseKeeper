@@ -22,12 +22,16 @@ fun StateBarScreen(
   Box(
      contentAlignment = Alignment.Center
   ) {
-
-    CarStateBar1(viewModel)
     Column {
-      Spacer(modifier = Modifier.height(100.dp))
-      SliderOfBatteryValume(OnchangePosition ={it-> viewModel.changeVolume(it)})
+      CarStatusBar(viewModel)
+      Spacer(Modifier.height(100.dp))
+      CarBatteryVolume(viewModel)
+      Column {
+        Spacer(modifier = Modifier.height(100.dp))
+        SliderOfBatteryValume(OnchangePosition ={it-> viewModel.changeVolume(it)})
+      }
     }
+
 
   }
 
