@@ -34,7 +34,7 @@ import io.getstream.webrtc.sample.compose.car.CarManager
 import io.getstream.webrtc.sample.compose.car.CarManagerImp
 import io.getstream.webrtc.sample.compose.car.JoyStick.JoyStickScreen
 import io.getstream.webrtc.sample.compose.car.JoyStick.MyJoyStickViewModel
-import io.getstream.webrtc.sample.compose.car.StateBar.MyStateBarViewModel
+import io.getstream.webrtc.sample.compose.car.StateBar.CarStateBarViewModel
 import io.getstream.webrtc.sample.compose.car.StateBar.StateBarScreen
 import io.getstream.webrtc.sample.compose.car.serialcom.SerialComManager
 import io.getstream.webrtc.sample.compose.car.serialcom.SerialComManagerImp
@@ -93,7 +93,7 @@ class MainActivity : ComponentActivity() {
                   JoyStickScreen(MyJoyStickViewModel(serialComManager))
                 }
                 else if(onStateBarScreen){
-                  StateBarScreen(MyStateBarViewModel(serialComManager))
+                  StateBarScreen(CarStateBarViewModel(serialComManager))
 
                 }else {
                   SerialComScreen(

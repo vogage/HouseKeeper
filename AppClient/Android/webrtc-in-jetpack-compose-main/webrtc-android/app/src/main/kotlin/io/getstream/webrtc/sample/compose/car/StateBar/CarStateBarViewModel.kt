@@ -10,7 +10,7 @@ data class StateBarData(
   var batteryVolume:Float=0f,
   var signalStrength:Float=0f
 )
-class MyStateBarViewModel(
+class CarStateBarViewModel(
   private val serialCom: SerialComManager
 ):ViewModel(){
   private var _uiState = MutableStateFlow(StateBarData())
@@ -19,6 +19,10 @@ class MyStateBarViewModel(
 
   fun changeVolume(vol:Float){
     _uiState.update { it-> it.copy(batteryVolume = vol)}
+  }
+
+  fun changeSignalStrength(stren:Float){
+    _uiState.update { it-> it.copy(signalStrength = stren) }
   }
 }
 
