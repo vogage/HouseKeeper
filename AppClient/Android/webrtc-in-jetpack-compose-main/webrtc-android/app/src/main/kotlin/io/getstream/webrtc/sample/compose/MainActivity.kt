@@ -30,6 +30,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import io.getstream.webrtc.sample.compose.car.Camera.CameraManagerImp
+import io.getstream.webrtc.sample.compose.car.Camera.CameraViewModel
+import io.getstream.webrtc.sample.compose.car.Camera.CameraViewScreen
 import io.getstream.webrtc.sample.compose.car.CarManager
 import io.getstream.webrtc.sample.compose.car.CarManagerImp
 import io.getstream.webrtc.sample.compose.car.JoyStick.JoyStickScreen
@@ -63,9 +66,11 @@ class MainActivity : ComponentActivity() {
 
     //sessionManager.signalingClient.myws.send("hhhhhhhhhhhhhhhhhhhhhhjjjjjjjjjj"); //just test
     val carmanager:CarManager=CarManagerImp(
-      context=this,
-      serialCom = SerialComManagerImp(this)
+      context =this,
+      serialCom = SerialComManagerImp(this),
+      carCamera = CameraManagerImp(this)
     )
+
 
     val serialComManager:SerialComManager=SerialComManagerImp(context=this)
 
@@ -81,6 +86,7 @@ class MainActivity : ComponentActivity() {
             var onOpenSerialCom by remember{ mutableStateOf(false) }
             var onJoyStickScreen by remember{ mutableStateOf(false) }
             var onStateBarScreen by remember{mutableStateOf(false) }
+            var onCameraViewScreen by remember{ mutableStateOf(false) }
             val state by sessionManager.signalingClient.sessionStateFlow.collectAsState()
 
 
@@ -95,12 +101,14 @@ class MainActivity : ComponentActivity() {
                 else if(onStateBarScreen){
                   StateBarScreen(CarStateBarViewModel(serialComManager))
 
-                }else {
+                }else if(onCameraViewScreen){
+                  CameraViewScreen(CameraViewModel(carmanager.carCamera))
+                }else{
                   SerialComScreen(
-                    this,
                     SerialComViewModel(serialComManager),
                     { onJoyStickScreen = true },
-                    { onStateBarScreen = true })
+                    { onStateBarScreen = true },
+                    { onCameraViewScreen=true})
 
                 }
               }

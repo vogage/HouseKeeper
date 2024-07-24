@@ -3,7 +3,6 @@ package io.getstream.webrtc.sample.compose.car.serialcom
 
 
 
-import android.content.Context
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -34,10 +33,10 @@ import io.getstream.webrtc.sample.compose.ui.theme.Teal200
 
 @Composable
 fun SerialComScreen(
-    context: Context,
    viewModel: SerialComViewModel,
     onJoyStickScreenOpen:()->Unit,
-    onStateBarScreenOpen:()->Unit
+    onStateBarScreenOpen:()->Unit,
+    onCameraViewScreenOpen:()->Unit
 ){
   val uiState by viewModel.uiState.collectAsState()
 
@@ -47,6 +46,10 @@ fun SerialComScreen(
       modifier = Modifier
         .padding(vertical = 20.dp)
     )
+    //CameraView()
+    Button(onClick = {onCameraViewScreenOpen.invoke()}){
+      Text(text = "CameraView")
+    }
    // MyJoyStick()
     Button(onClick = {onStateBarScreenOpen.invoke()}){
       Text(text="stateBar")

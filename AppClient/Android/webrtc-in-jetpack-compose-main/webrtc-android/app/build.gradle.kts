@@ -75,6 +75,7 @@ dependencies {
 
 
   implementation(libs.serialport)
+    implementation(libs.androidx.camera.core)
 
 
 }
