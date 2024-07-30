@@ -3,12 +3,14 @@ package io.getstream.webrtc.sample.compose.car.Camera
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.SurfaceTexture
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraDevice
 import android.hardware.camera2.CameraManager
 import android.hardware.camera2.CameraMetadata
 import android.os.Handler
 import android.os.HandlerThread
+import android.view.TextureView.SurfaceTextureListener
 import androidx.core.app.ActivityCompat
 import androidx.core.content.getSystemService
 import io.getstream.log.taggedLogger
@@ -18,8 +20,10 @@ import kotlinx.coroutines.flow.update
 
 
 class CameraManagerImp(private val context: Context):CameraManger{
-  private val cameraManager by lazy { context.getSystemService<CameraManager>() }
   private val logger by taggedLogger("Call:CameraManagerImp")
+  private val cameraManager by lazy { context.getSystemService<CameraManager>() }
+  private lateinit var cameraId:String
+
 
   private lateinit var backgroundHandlerThread: HandlerThread
   private lateinit var backgroundHandler: Handler
@@ -50,7 +54,7 @@ class CameraManagerImp(private val context: Context):CameraManger{
 
     _cameraState.update { it.copy(msg = "get the CameraId$cameraId") }
 
-
+    val characteristics: CameraCharacteristics=manager.getCameraCharacteristics(cameraId)
 
     if (ActivityCompat.checkSelfPermission(
         context,
@@ -82,6 +86,21 @@ class CameraManagerImp(private val context: Context):CameraManger{
 
 
   }
+  private val mSurfaceTextureListener: SurfaceTextureListener = object : SurfaceTextureListener {
+    override fun onSurfaceTextureAvailable(texture: SurfaceTexture, width: Int, height: Int) {
+
+    }
+
+    override fun onSurfaceTextureSizeChanged(texture: SurfaceTexture, width: Int, height: Int) {
+
+    }
+
+    override fun onSurfaceTextureDestroyed(texture: SurfaceTexture): Boolean {
+      return true
+    }
+
+    override fun onSurfaceTextureUpdated(texture: SurfaceTexture) {}
+  }
 
   private fun startBackgroundThread(){
     backgroundHandlerThread= HandlerThread("CameraVideoThread")
@@ -96,7 +115,7 @@ class CameraManagerImp(private val context: Context):CameraManger{
 
   private val cameraStateCallback = object :CameraDevice.StateCallback(){
     override fun onOpened(p0: CameraDevice) {
-      TODO("Not yet implemented")
+      _cameraState.update { it.copy(msg = "CameraDevice.StateCallback onOpened") }
     }
 
     override fun onDisconnected(p0: CameraDevice) {
@@ -116,5 +135,7 @@ class CameraManagerImp(private val context: Context):CameraManger{
 
   }
 }
+
+
 
 

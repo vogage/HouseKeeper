@@ -19,6 +19,8 @@ class CameraViewModel(
   private val _cameraUiState = MutableStateFlow(CameraUIState())
   val cameraUiState: StateFlow<CameraUIState> = _cameraUiState
   private val scope=viewModelScope
+
+
 init {
   scope.launch {
     refreshCameraUiSate()
