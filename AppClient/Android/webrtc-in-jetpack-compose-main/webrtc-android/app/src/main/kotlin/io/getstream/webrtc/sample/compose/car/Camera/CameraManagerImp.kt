@@ -10,7 +10,8 @@ import android.hardware.camera2.CameraManager
 import android.hardware.camera2.CameraMetadata
 import android.os.Handler
 import android.os.HandlerThread
-import android.view.TextureView.SurfaceTextureListener
+import android.util.AttributeSet
+import android.view.TextureView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.getSystemService
 import io.getstream.log.taggedLogger
@@ -19,7 +20,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 
 
-class CameraManagerImp(private val context: Context):CameraManger{
+class CameraManagerImp(
+  private val context: Context
+):CameraManger{
   private val logger by taggedLogger("Call:CameraManagerImp")
   private val cameraManager by lazy { context.getSystemService<CameraManager>() }
   private lateinit var cameraId:String
@@ -27,7 +30,9 @@ class CameraManagerImp(private val context: Context):CameraManger{
 
   private lateinit var backgroundHandlerThread: HandlerThread
   private lateinit var backgroundHandler: Handler
+  //private lateinit var textureView: AutoFitTextureView
 
+  //val texture = textureView.surfaceTexture
 
   private var _cameraState = MutableStateFlow(CameraState())
   override val cameraState: StateFlow<CameraState> =_cameraState
@@ -81,26 +86,8 @@ class CameraManagerImp(private val context: Context):CameraManger{
     }catch (e:Exception){
       _cameraState.update { it.copy(msg = "checkSelfPermission:  $e") }
     }
-
-
-
-
   }
-  private val mSurfaceTextureListener: SurfaceTextureListener = object : SurfaceTextureListener {
-    override fun onSurfaceTextureAvailable(texture: SurfaceTexture, width: Int, height: Int) {
 
-    }
-
-    override fun onSurfaceTextureSizeChanged(texture: SurfaceTexture, width: Int, height: Int) {
-
-    }
-
-    override fun onSurfaceTextureDestroyed(texture: SurfaceTexture): Boolean {
-      return true
-    }
-
-    override fun onSurfaceTextureUpdated(texture: SurfaceTexture) {}
-  }
 
   private fun startBackgroundThread(){
     backgroundHandlerThread= HandlerThread("CameraVideoThread")
@@ -134,8 +121,54 @@ class CameraManagerImp(private val context: Context):CameraManger{
     }
 
   }
+
+  override fun  openCamera(p0: SurfaceTexture, width: Int, height: Int, onError:(Exception)->Unit){
+
+  }
+
+  override fun closeCamera(onError:(Exception)->Unit){
+
+  }
 }
 
 
+class AutoFitTextureView @JvmOverloads constructor(
+  context: Context?,
+  attrs: AttributeSet? = null,
+  defStyle: Int = 0
+) :
+  TextureView(context!!, attrs, defStyle) {
+  private var mRatioWidth = 0
+  private var mRatioHeight = 0
 
+  /**
+   * Sets the aspect ratio for this view. The size of the view will be measured based on the ratio
+   * calculated from the parameters. Note that the actual sizes of parameters don't matter, that
+   * is, calling setAspectRatio(2, 3) and setAspectRatio(4, 6) make the same result.
+   *
+   * @param width  Relative horizontal size
+   * @param height Relative vertical size
+   */
+  fun setAspectRatio(width: Int, height: Int) {
+    require(!(width < 0 || height < 0)) { "Size cannot be negative." }
+    mRatioWidth = width
+    mRatioHeight = height
+    requestLayout()
+  }
+
+  override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+    super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+    val width = MeasureSpec.getSize(widthMeasureSpec)
+    val height = MeasureSpec.getSize(heightMeasureSpec)
+    if (0 == mRatioWidth || 0 == mRatioHeight) {
+      setMeasuredDimension(width, height)
+    } else {
+      if (width < height * mRatioWidth / mRatioHeight) {
+        setMeasuredDimension(width, width * mRatioHeight / mRatioWidth)
+      } else {
+        setMeasuredDimension(height * mRatioWidth / mRatioHeight, height)
+      }
+    }
+  }
+}
 
