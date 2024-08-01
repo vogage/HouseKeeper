@@ -10,21 +10,22 @@ import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraDevice
 import android.hardware.camera2.CameraManager
 import android.hardware.camera2.CameraMetadata
-import android.hardware.camera2.CaptureRequest
+import android.hardware.camera2.params.OutputConfiguration
+import android.hardware.camera2.params.SessionConfiguration
+import android.hardware.camera2.params.SessionConfiguration.SESSION_REGULAR
 import android.os.Handler
 import android.os.HandlerThread
 import android.util.AttributeSet
 import android.util.Size
 import android.view.Surface
 import android.view.TextureView
-
 import androidx.core.app.ActivityCompat
 import androidx.core.content.getSystemService
 import io.getstream.log.taggedLogger
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
-import java.util.Arrays
+import java.util.concurrent.Executor
 
 
 class CameraManagerImp(
@@ -142,7 +143,7 @@ class CameraManagerImp(
 
   override fun  openCamera(p0: SurfaceTexture, width: Int, height: Int, onError:(Exception)->Unit){
     mSufaceTexture=p0
-    mPreviewSize=Size(width,height)
+    mPreviewSize= Size(width,height)
   }
 
   override fun closeCamera(onError:(Exception)->Unit){
@@ -165,11 +166,26 @@ class CameraManagerImp(
       mPreviewRequestBuilder.addTarget(surface)
 //      createCaptureSession(List<Surface> outputs, CameraCaptureSession.StateCallback callback, Handler handler)
 //      This method was deprecated in API level 30. Please use createCaptureSession(android.hardware.camera2.params.SessionConfiguration) for the full set of configuration options available.
-
+      val outputConfigurations = ArrayList<OutputConfiguration>()
       //SessionConfiguration(int sessionType, List<OutputConfiguration> outputs, Executor executor, CameraCaptureSession.StateCallback cb)
       // Here, we create a CameraCaptureSession for camera preview.
-      mCameraDevice.createCaptureSession(
 
+      mCameraDevice.createCaptureSession(
+        SessionConfiguration(
+          SESSION_REGULAR,
+          outputConfigurations,
+          Executor {  },
+          object:CameraCaptureSession.StateCallback() {
+            override fun onConfigured(p0: CameraCaptureSession) {
+              TODO("Not yet implemented")
+            }
+
+            override fun onConfigureFailed(p0: CameraCaptureSession) {
+              TODO("Not yet implemented")
+            }
+          }
+
+        )
       )
     } catch (e: CameraAccessException) {
       e.printStackTrace()
