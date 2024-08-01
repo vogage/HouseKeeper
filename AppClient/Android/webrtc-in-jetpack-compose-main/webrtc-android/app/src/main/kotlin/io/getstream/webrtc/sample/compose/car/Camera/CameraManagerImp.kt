@@ -4,20 +4,27 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.SurfaceTexture
+import android.hardware.camera2.CameraAccessException
+import android.hardware.camera2.CameraCaptureSession
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraDevice
 import android.hardware.camera2.CameraManager
 import android.hardware.camera2.CameraMetadata
+import android.hardware.camera2.CaptureRequest
 import android.os.Handler
 import android.os.HandlerThread
 import android.util.AttributeSet
+import android.util.Size
+import android.view.Surface
 import android.view.TextureView
+
 import androidx.core.app.ActivityCompat
 import androidx.core.content.getSystemService
 import io.getstream.log.taggedLogger
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
+import java.util.Arrays
 
 
 class CameraManagerImp(
@@ -26,22 +33,27 @@ class CameraManagerImp(
   private val logger by taggedLogger("Call:CameraManagerImp")
   private val cameraManager by lazy { context.getSystemService<CameraManager>() }
   private lateinit var cameraId:String
+  private lateinit var cameraCharacteristics: CameraCharacteristics
 
-
-  private lateinit var backgroundHandlerThread: HandlerThread
-  private lateinit var backgroundHandler: Handler
+  private lateinit var cameraHandlerThread: HandlerThread
+  private lateinit var cameraHandler: Handler
+  private lateinit var mCameraDevice: CameraDevice
+  private lateinit var mSufaceTexture:SurfaceTexture
+  private lateinit var mPreviewSize: Size
   //private lateinit var textureView: AutoFitTextureView
 
   //val texture = textureView.surfaceTexture
 
   private var _cameraState = MutableStateFlow(CameraState())
   override val cameraState: StateFlow<CameraState> =_cameraState
+
+
   override fun initial() {
     val manager = cameraManager ?: throw RuntimeException("CameraManager was not initialized!")
 
     val ids = manager.cameraIdList
     var foundCamera = false
-    var cameraId = ""
+
 
     for (id in ids) {
       val characteristics = manager.getCameraCharacteristics(id)
@@ -50,6 +62,10 @@ class CameraManagerImp(
       if (cameraLensFacing == CameraMetadata.LENS_FACING_BACK) {
         foundCamera = true
         cameraId = id
+        cameraCharacteristics=characteristics
+        val streamConfigurationMap = cameraCharacteristics.get(
+          CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP
+        )
       }
     }
 
@@ -59,7 +75,7 @@ class CameraManagerImp(
 
     _cameraState.update { it.copy(msg = "get the CameraId$cameraId") }
 
-    val characteristics: CameraCharacteristics=manager.getCameraCharacteristics(cameraId)
+
 
     if (ActivityCompat.checkSelfPermission(
         context,
@@ -82,7 +98,7 @@ class CameraManagerImp(
       _cameraState.update { it.copy(msg = "startBackgroundThread:  $e") }
     }
     try {
-      manager.openCamera(cameraId,cameraStateCallback,backgroundHandler)
+      manager.openCamera(cameraId,cameraStateCallback,cameraHandler)
     }catch (e:Exception){
       _cameraState.update { it.copy(msg = "checkSelfPermission:  $e") }
     }
@@ -90,18 +106,20 @@ class CameraManagerImp(
 
 
   private fun startBackgroundThread(){
-    backgroundHandlerThread= HandlerThread("CameraVideoThread")
-    backgroundHandlerThread.start()
-    backgroundHandler= Handler(backgroundHandlerThread.looper)
+    cameraHandlerThread= HandlerThread("CameraVideoThread")
+    cameraHandlerThread.start()
+    cameraHandler= Handler(cameraHandlerThread.looper)
   }
 
   private fun stopBackgroundThread(){
-    backgroundHandlerThread.quitSafely()
-    backgroundHandlerThread.join()
+    cameraHandlerThread.quitSafely()
+    cameraHandlerThread.join()
   }
 
   private val cameraStateCallback = object :CameraDevice.StateCallback(){
     override fun onOpened(p0: CameraDevice) {
+      mCameraDevice=p0
+      createCameraPreviewSession()
       _cameraState.update { it.copy(msg = "CameraDevice.StateCallback onOpened") }
     }
 
@@ -123,11 +141,39 @@ class CameraManagerImp(
   }
 
   override fun  openCamera(p0: SurfaceTexture, width: Int, height: Int, onError:(Exception)->Unit){
-
+    mSufaceTexture=p0
+    mPreviewSize=Size(width,height)
   }
 
   override fun closeCamera(onError:(Exception)->Unit){
 
+  }
+
+  private fun createCameraPreviewSession() {
+    try {
+      val texture: SurfaceTexture = mSufaceTexture
+// 创建和设置 SessionConfiguration
+
+      // We configure the size of default buffer to be the size of camera preview we want.
+      texture.setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight())
+
+      // This is the output Surface we need to start preview.
+      val surface = Surface(texture)
+
+      // We set up a CaptureRequest.Builder with the output Surface.
+      val mPreviewRequestBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
+      mPreviewRequestBuilder.addTarget(surface)
+//      createCaptureSession(List<Surface> outputs, CameraCaptureSession.StateCallback callback, Handler handler)
+//      This method was deprecated in API level 30. Please use createCaptureSession(android.hardware.camera2.params.SessionConfiguration) for the full set of configuration options available.
+
+      //SessionConfiguration(int sessionType, List<OutputConfiguration> outputs, Executor executor, CameraCaptureSession.StateCallback cb)
+      // Here, we create a CameraCaptureSession for camera preview.
+      mCameraDevice.createCaptureSession(
+
+      )
+    } catch (e: CameraAccessException) {
+      e.printStackTrace()
+    }
   }
 }
 
