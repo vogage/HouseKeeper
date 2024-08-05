@@ -29,7 +29,9 @@ class CameraViewModel(
     carCamera.closeCamera(onError)
   }
 
-
+  fun setMsg(msg:String){
+    _cameraUiState.update { it.copy(stateMsg =  msg) }
+  }
 init {
   scope.launch {
     refreshCameraUiSate()

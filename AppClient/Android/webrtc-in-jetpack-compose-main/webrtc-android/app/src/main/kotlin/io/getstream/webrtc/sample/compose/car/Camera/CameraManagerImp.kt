@@ -11,8 +11,6 @@ import android.hardware.camera2.CameraDevice
 import android.hardware.camera2.CameraManager
 import android.hardware.camera2.CameraMetadata
 import android.hardware.camera2.params.OutputConfiguration
-import android.hardware.camera2.params.SessionConfiguration
-import android.hardware.camera2.params.SessionConfiguration.SESSION_REGULAR
 import android.os.Handler
 import android.os.HandlerThread
 import android.util.AttributeSet
@@ -25,7 +23,6 @@ import io.getstream.log.taggedLogger
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
-import java.util.concurrent.Executor
 
 
 class CameraManagerImp(
@@ -100,9 +97,12 @@ class CameraManagerImp(
     }
     try {
       manager.openCamera(cameraId,cameraStateCallback,cameraHandler)
+
     }catch (e:Exception){
       _cameraState.update { it.copy(msg = "checkSelfPermission:  $e") }
     }
+    //_cameraState.update { it.copy(msg = "end camera initial") }
+
   }
 
 
@@ -121,11 +121,11 @@ class CameraManagerImp(
     override fun onOpened(p0: CameraDevice) {
       mCameraDevice=p0
       createCameraPreviewSession()
-      _cameraState.update { it.copy(msg = "CameraDevice.StateCallback onOpened") }
+     // _cameraState.update { it.copy(msg = "CameraDevice.StateCallback onOpened") }
     }
 
     override fun onDisconnected(p0: CameraDevice) {
-      TODO("Not yet implemented")
+      _cameraState.update { it.copy(msg = "onDisconnected") }
     }
 
     override fun onError(cameraDevice: CameraDevice, error: Int) {
@@ -144,6 +144,7 @@ class CameraManagerImp(
   override fun  openCamera(p0: SurfaceTexture, width: Int, height: Int, onError:(Exception)->Unit){
     mSufaceTexture=p0
     mPreviewSize= Size(width,height)
+    initial()
   }
 
   override fun closeCamera(onError:(Exception)->Unit){
@@ -164,32 +165,42 @@ class CameraManagerImp(
       // We set up a CaptureRequest.Builder with the output Surface.
       val mPreviewRequestBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
       mPreviewRequestBuilder.addTarget(surface)
+
+      val mPreviewCaptureRequest = mPreviewRequestBuilder.build()
 //      createCaptureSession(List<Surface> outputs, CameraCaptureSession.StateCallback callback, Handler handler)
 //      This method was deprecated in API level 30. Please use createCaptureSession(android.hardware.camera2.params.SessionConfiguration) for the full set of configuration options available.
       val outputConfigurations = ArrayList<OutputConfiguration>()
       //SessionConfiguration(int sessionType, List<OutputConfiguration> outputs, Executor executor, CameraCaptureSession.StateCallback cb)
       // Here, we create a CameraCaptureSession for camera preview.
 
-      mCameraDevice.createCaptureSession(
-        SessionConfiguration(
-          SESSION_REGULAR,
-          outputConfigurations,
-          Executor {  },
-          object:CameraCaptureSession.StateCallback() {
-            override fun onConfigured(p0: CameraCaptureSession) {
-              TODO("Not yet implemented")
-            }
+      //prepare the output surface
+      val outPutSurfaces=listOf(surface)
 
-            override fun onConfigureFailed(p0: CameraCaptureSession) {
-              TODO("Not yet implemented")
-            }
+
+     mCameraDevice.createCaptureSession(
+        outPutSurfaces,
+        object : CameraCaptureSession.StateCallback() {
+          override fun onConfigured(session: CameraCaptureSession) {
+            // 会话已经配置好，你可以开始捕获图像了
+            // 保存 CameraCaptureSession 对象以便后续使用
+            session.setRepeatingBurst(listOf(mPreviewCaptureRequest),null,null)
           }
 
-        )
+          override fun onConfigureFailed(session: CameraCaptureSession) {
+            // 会话配置失败，处理错误
+            _cameraState.update { it.copy(msg = "onConfigureFailed") }
+          }
+        },
+        cameraHandler
       )
     } catch (e: CameraAccessException) {
+      _cameraState.update { it.copy(msg= "createCameraPreviewSession: CameraAccessException $e") }
       e.printStackTrace()
     }
+    _cameraState.update { it.copy(msg= "end createCameraPreviewSession") }
+
+
+
   }
 }
 
