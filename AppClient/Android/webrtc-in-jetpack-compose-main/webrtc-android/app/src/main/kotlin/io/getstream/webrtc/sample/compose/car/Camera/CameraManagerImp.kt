@@ -10,6 +10,8 @@ import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraDevice
 import android.hardware.camera2.CameraManager
 import android.hardware.camera2.CameraMetadata
+import android.hardware.camera2.CaptureRequest
+import android.hardware.camera2.TotalCaptureResult
 import android.hardware.camera2.params.OutputConfiguration
 import android.os.Handler
 import android.os.HandlerThread
@@ -177,13 +179,33 @@ class CameraManagerImp(
       val outPutSurfaces=listOf(surface)
 
 
+
      mCameraDevice.createCaptureSession(
         outPutSurfaces,
         object : CameraCaptureSession.StateCallback() {
           override fun onConfigured(session: CameraCaptureSession) {
             // 会话已经配置好，你可以开始捕获图像了
             // 保存 CameraCaptureSession 对象以便后续使用
-            session.setRepeatingBurst(listOf(mPreviewCaptureRequest),null,null)
+            session.setRepeatingBurst(listOf(mPreviewCaptureRequest),object:CameraCaptureSession.CaptureCallback()
+            {
+              override fun onCaptureStarted(
+                session: CameraCaptureSession,
+                request: CaptureRequest,
+                timestamp: Long,
+                frameNumber: Long
+              ) {
+                super.onCaptureStarted(session, request, timestamp, frameNumber)
+              }
+
+              override fun onCaptureCompleted(
+                session: CameraCaptureSession,
+                request: CaptureRequest,
+                result: TotalCaptureResult
+              ) {
+                super.onCaptureCompleted(session, request, result)
+              }
+            }
+              ,cameraHandler)
           }
 
           override fun onConfigureFailed(session: CameraCaptureSession) {

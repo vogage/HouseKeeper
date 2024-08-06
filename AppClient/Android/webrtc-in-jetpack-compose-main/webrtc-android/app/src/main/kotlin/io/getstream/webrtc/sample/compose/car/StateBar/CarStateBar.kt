@@ -1,12 +1,11 @@
 package io.getstream.webrtc.sample.compose.car.StateBar
 
+
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-
-
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
@@ -15,7 +14,6 @@ import androidx.compose.material.Icon
 import androidx.compose.material.Slider
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
@@ -51,9 +49,8 @@ enum class CarSignalLevel{
 
 @Composable
 fun CarStatusBar(
-  viewModel: CarStateBarViewModel
+  uiState: StateBarData
 ){
-  val uiState by viewModel.uiState.collectAsState()
   Row(
     horizontalArrangement = Arrangement.End
   ) {
