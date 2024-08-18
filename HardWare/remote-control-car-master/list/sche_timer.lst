@@ -1,0 +1,97 @@
+C51 COMPILER V9.59.0.0   SCHE_TIMER                                                        04/02/2024 22:51:28 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE SCHE_TIMER
+OBJECT MODULE PLACED IN .\output\sche_timer.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE sche_timer.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\list\sc
+                    -he_timer.lst) TABS(2) OBJECT(.\output\sche_timer.obj)
+
+line level    source
+
+   1          #include "sche_timer.h"
+   2          
+   3          // 添加非阻塞操作，定时器中断中准时调用
+   4          func_trigger_ptr_t func_10ms_trigger_ptr = NULL_PTR;
+   5          func_trigger_ptr_t func_500ms_trigger_ptr = NULL_PTR;
+   6          
+   7          /*
+   8          ** 函数: void sche_timer_init(u8 period_ms)
+   9          ** 描述: 调度定时器初始化，硬编码为timer0，因此timer0不可以再选用为其他功能
+  10          ** 参数: ms, 定时器周期，范围：1~71ms。自动适应主时钟.
+  11          ** 返回: none.
+  12          */
+  13          void sche_timer_init(u8 period_ms)
+  14          {
+  15   1          u16 timer0_reload_tickes = 0;
+  16   1        
+  17   1          EA = 0;
+  18   1        
+  19   1          // 设置定时器模式为模式1（16位定时器）
+  20   1          TMOD &= 0xF0;  //  清除定时器0模式位
+  21   1          TMOD |= 0x00;   // 设置为模式0, 16位自动重载模式
+  22   1          AUXR &= 0x7F;   // T0x12=0, 12分频
+  23   1          // 计算定时器重载值，（系统时钟为11.0592MHz）
+  24   1          timer0_reload_tickes = 65535 - period_ms * (SYSTEM_CLOCK / 12 / 1000);
+  25   1          // 设置定时器初值
+  26   1          TL0 = timer0_reload_tickes % 256;
+  27   1          TH0 = timer0_reload_tickes / 256;
+  28   1          // 启用定时器0中断
+  29   1          ET0 = 1;
+  30   1          // 关闭定时器0
+  31   1          TR0 = 0;
+  32   1        
+  33   1          // 允许全局中断
+  34   1          EA = 1;
+  35   1      }
+  36          
+  37          void sche_timer_start(void)
+  38          {
+  39   1        // 启动定时器0
+  40   1        TR0 = 1;
+  41   1      }
+  42          
+  43          void sche_timer_stop(void)
+  44          {
+  45   1        // 停止定时器0
+  46   1        TR0 = 0;
+  47   1      }
+  48          
+  49          // sche_timer中断服务程序
+  50          void sche_timer_isr(void) interrupt 1{
+  51   1          static u16 sche_timer_ticks = 0;
+  52   1          sche_timer_ticks ++;
+  53   1      
+  54   1          if(sche_timer_ticks > 0 && sche_timer_ticks%10 == 0){  // 10ms
+C51 COMPILER V9.59.0.0   SCHE_TIMER                                                        04/02/2024 22:51:28 PAGE 2   
+
+  55   2            if (NULL_PTR != func_10ms_trigger_ptr){
+  56   3              func_10ms_trigger_ptr();
+  57   3            }
+  58   2          }
+  59   1          
+  60   1          if(sche_timer_ticks > 0 && sche_timer_ticks%500 == 0){  // 500ms
+  61   2            if (NULL_PTR != func_500ms_trigger_ptr){
+  62   3              func_500ms_trigger_ptr();
+  63   3            }
+  64   2          }
+  65   1          
+  66   1          // 复位
+  67   1          if (sche_timer_ticks >= 500){
+  68   2            sche_timer_ticks = 0;
+  69   2          }
+  70   1      }
+  71          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    207    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      8    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

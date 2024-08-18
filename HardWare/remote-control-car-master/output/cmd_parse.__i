@@ -1,0 +1,1 @@
+"cmd_parse.c" OPTIMIZE (8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\list\cmd_parse.lst) TABS (2) OBJECT(.\output\cmd_parse.obj)

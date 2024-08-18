@@ -1,0 +1,124 @@
+C51 COMPILER V9.59.0.0   UART1                                                             04/02/2024 23:19:52 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE UART1
+OBJECT MODULE PLACED IN .\output\uart1.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE uart1.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\list\uart1.l
+                    -st) TABS(2) OBJECT(.\output\uart1.obj)
+
+line level    source
+
+   1          #include <string.h>
+   2          #include "uart1.h"
+   3          
+   4          static bit uart1_tx_busy;  // 发送忙flag
+   5          
+   6          // 串口接收处理函数，必须是非阻塞操作
+   7          func_uart_recv_parse_t func_usart1_recved_parse_ptr = NULL_PTR;
+   8          
+   9          void uart1_init(u32 buard, func_uart_recv_parse_t func_parse_ptr)
+  10          {
+  11   1        u16 buard_timer_reload_ticks = 0;
+  12   1        uart1_tx_busy = 0;
+  13   1        
+  14   1        func_usart1_recved_parse_ptr = func_parse_ptr;
+  15   1        
+  16   1        EA = 0;
+  17   1        // 除 P3.0 和 P3.1 外，其余所有 I/O 口上电后的状态均为高阻输入状态，用户在使用 I/O 口时必须先设置 I/O口模
+             -式
+  18   1        P_SW1 &= 0x3F;      // RXD/P3.0, TXD/P3.1
+  19   1        SCON = 0x50;        // UART方式1；可变波特率8位数据方式; 允许串口接收数据
+  20   1        
+  21   1        buard_timer_reload_ticks = (65536 - SYSTEM_CLOCK / buard / 4);
+  22   1        T2L = buard_timer_reload_ticks;
+  23   1        T2H = buard_timer_reload_ticks >> 8;
+  24   1        
+  25   1        AUXR |= 0x15;    // 定时器2开始计数，不分频，作为波特率发生器
+  26   1        ES   = 1;     //打开串行口中断
+  27   1        EA   = 1;     //打开全局中断控制
+  28   1      }
+  29          
+  30          void uart1_printf(u8 *p)        //发送字符串
+  31          { 
+  32   1        while (*p)
+  33   1        {
+  34   2          uart1_print_ascii(*p++);
+  35   2        }  
+  36   1      }
+  37          
+  38          // 不可重入，且存在阻塞操作，不能在中断服务函数中调用
+  39          u8 uart1_print_ascii(u8 dat)
+  40          { 
+  41   1        u8 ret = 0;
+  42   1        while (uart1_tx_busy) {
+  43   2          ret = 1;
+  44   2        }
+  45   1        uart1_tx_busy = 1;
+  46   1        SBUF = dat;
+  47   1        return ret;
+  48   1      }
+  49          
+  50          
+  51          // 重写putchar函数
+  52          char putchar(char c)
+  53          {
+C51 COMPILER V9.59.0.0   UART1                                                             04/02/2024 23:19:52 PAGE 2   
+
+  54   1          uart1_print_ascii(c);
+  55   1          return c;
+  56   1      }
+  57          
+  58          void uart1_isr() interrupt 4
+  59          {
+  60   1        u8 uart1_recv_char = 0;
+  61   1        if (TI)
+  62   1        {
+  63   2          TI = 0;
+  64   2          uart1_tx_busy = 0;
+  65   2        }
+  66   1        if (RI)
+  67   1        {
+  68   2          RI = 0;
+  69   2          uart1_recv_char = SBUF;
+  70   2          if (func_usart1_recved_parse_ptr != NULL_PTR) {
+  71   3            func_usart1_recved_parse_ptr(uart1_recv_char);  // 不可阻塞
+  72   3          }
+  73   2        }
+  74   1      }
+  75          
+  76          
+  77          
+  78          
+  79          
+  80          
+  81          
+  82          
+  83          
+  84          
+  85          
+  86          
+  87          
+  88          
+  89          
+  90          
+  91          
+  92          
+  93          
+  94          
+  95          
+  96          
+  97          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    219    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      3       7
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      1    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,1 @@
+"uart1.c" OPTIMIZE (8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\list\uart1.lst) TABS (2) OBJECT(.\output\uart1.obj)

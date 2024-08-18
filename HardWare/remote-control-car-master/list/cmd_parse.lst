@@ -1,0 +1,90 @@
+C51 COMPILER V9.59.0.0   CMD_PARSE                                                         04/03/2024 00:05:42 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE CMD_PARSE
+OBJECT MODULE PLACED IN .\output\cmd_parse.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE cmd_parse.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\list\cmd
+                    -_parse.lst) TABS(2) OBJECT(.\output\cmd_parse.obj)
+
+line level    source
+
+   1          #include <string.h>
+   2          #include "cmd_parse.h"
+   3          
+   4          //0xaa 0x00 0x01 0x04 0x03 0x05 0x06 0x06
+   5          // 命令帧格式： 
+   6          // 8字节，首字节0xAA, 末字节为：sum(byte[0]~byte[6])
+   7          #define CMD_FRAME_START        0xAA  
+   8          unsigned char cmd_buff[CMD_FRAME_LEN] = {0};    // 用于存储最新解析得到的完整cmd
+   9          unsigned char cmd_recvd_flag = 0;
+  10          
+  11          // 串口接收缓存
+  12          unsigned char uart_recv_buff[CMD_FRAME_LEN] = {0};  // 用于临时存储接收中断的字节
+  13          unsigned char uart_recved_buff_len = 0;
+  14          
+  15          u8 uart_get_lasted_cmd(u8 * cmd_ptr, u8 cmd_len){
+  16   1        if((cmd_len != CMD_FRAME_LEN) || (cmd_recvd_flag == 0)){
+  17   2          return 1;
+  18   2        }
+  19   1        memcpy(cmd_ptr, cmd_buff, CMD_FRAME_LEN);
+  20   1        // critical_enter();//关闭全局中断
+  21   1        cmd_recvd_flag = 0;
+  22   1        // critical_exit();//打开全局中断
+  23   1        return 0;
+  24   1      }
+  25          
+  26          void uart_recv_parse_by_char(u8 recv_char){
+  27   1        u8 index = 0;
+  28   1        u8 check_sum = 0;
+  29   1        if (uart_recved_buff_len == 0) {
+  30   2          if (recv_char == 0xAA) {
+  31   3            uart_recv_buff[uart_recved_buff_len++] = recv_char;
+  32   3          }
+  33   2        }
+  34   1        else {
+  35   2          uart_recv_buff[uart_recved_buff_len++] = recv_char;
+  36   2        }
+  37   1        if (uart_recved_buff_len >= CMD_FRAME_LEN) {
+  38   2          // 判断是否满足协议
+  39   2          for(index = 0; index<CMD_FRAME_LEN-1; index++) {
+  40   3            check_sum += uart_recv_buff[index];
+  41   3          }
+  42   2          if (uart_recv_buff[CMD_FRAME_LEN-1] == check_sum) {
+  43   3            memcpy(cmd_buff, uart_recv_buff, CMD_FRAME_LEN);
+  44   3            uart_recved_buff_len = 0;
+  45   3            // critical_enter();//关闭全局中断
+  46   3            cmd_recvd_flag = 1;
+  47   3            // critical_exit();//打开全局中断
+  48   3          }
+  49   2          else {
+  50   3            // 检索字符串中的第二个0xAA， 并整体平移到字符串首
+  51   3            for (index = 1; index<CMD_FRAME_LEN; index++) {
+  52   4              if (uart_recv_buff[index] == 0xAA) {
+  53   5                memcpy(uart_recv_buff, uart_recv_buff+index, CMD_FRAME_LEN-index);
+  54   5                uart_recved_buff_len = CMD_FRAME_LEN-index;
+C51 COMPILER V9.59.0.0   CMD_PARSE                                                         04/03/2024 00:05:42 PAGE 2   
+
+  55   5                break;
+  56   5              }
+  57   4            }
+  58   3            if (uart_recved_buff_len >= CMD_FRAME_LEN) {
+  59   4              uart_recved_buff_len = 0;
+  60   4            }
+  61   3          }
+  62   2        }
+  63   1      }
+  64          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    217    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     18       4
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

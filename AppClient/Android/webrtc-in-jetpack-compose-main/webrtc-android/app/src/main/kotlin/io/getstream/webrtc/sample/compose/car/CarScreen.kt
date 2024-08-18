@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import io.getstream.webrtc.sample.compose.car.StateBar.CarStatusBar
 import io.getstream.webrtc.sample.compose.car.StateBar.SliderOfBatteryVolume
 import io.getstream.webrtc.sample.compose.car.StateBar.SliderOfSignalStrength
 
@@ -31,7 +32,8 @@ fun CarStateBarUI(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.End
       ) {
-       // CarStatusBar(viewModel.uiStateBar.collectAsState())
+        class DelegateCar(uiState)
+        CarStatusBar(viewModel.uiStateBar.collectAsState())
       }
       Spacer(Modifier.height(100.dp))
       SliderOfSignalStrength(OnchangePosition = { viewModel.changeSignalStrength(it)})

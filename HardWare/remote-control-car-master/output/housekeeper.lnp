@@ -1,0 +1,11 @@
+".\output\main.obj",
+".\output\delay.obj",
+".\output\led.obj",
+".\output\pwm.obj",
+".\output\sche_timer.obj",
+".\output\uart1.obj",
+".\output\motor.obj",
+".\output\cmd_parse.obj" 
+TO ".\output\housekeeper" 
+PRINT(".\list\housekeeper.m51") RAMSIZE(256) 
+DISABLEWARNING (16) 

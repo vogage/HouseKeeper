@@ -19,7 +19,7 @@ import kotlinx.coroutines.withContext
 class carScreenViewModel(
   private val carManager: CarManager
 ):ViewModel(){
-  private val logger by taggedLogger("Call:MyJoyStickViewModel")
+  private val logger by taggedLogger("Call:carScreenViewModel")
   private var _uiStateBar = MutableStateFlow(StateBarData())
   val uiStateBar: StateFlow<StateBarData> = _uiStateBar
 
