@@ -35,10 +35,12 @@ import io.getstream.webrtc.sample.compose.car.Camera.CameraViewModel
 import io.getstream.webrtc.sample.compose.car.Camera.CameraViewScreen
 import io.getstream.webrtc.sample.compose.car.CarManager
 import io.getstream.webrtc.sample.compose.car.CarManagerImp
+import io.getstream.webrtc.sample.compose.car.CarScreen
 import io.getstream.webrtc.sample.compose.car.JoyStick.JoyStickScreen
 import io.getstream.webrtc.sample.compose.car.JoyStick.MyJoyStickViewModel
 import io.getstream.webrtc.sample.compose.car.StateBar.CarStateBarViewModel
 import io.getstream.webrtc.sample.compose.car.StateBar.StateBarScreen
+import io.getstream.webrtc.sample.compose.car.carScreenViewModel
 import io.getstream.webrtc.sample.compose.car.serialcom.SerialComManager
 import io.getstream.webrtc.sample.compose.car.serialcom.SerialComManagerImp
 import io.getstream.webrtc.sample.compose.car.serialcom.SerialComScreen
@@ -87,6 +89,7 @@ class MainActivity : ComponentActivity() {
             var onJoyStickScreen by remember{ mutableStateOf(false) }
             var onStateBarScreen by remember{mutableStateOf(false) }
             var onCameraViewScreen by remember{ mutableStateOf(false) }
+            var onCarScreen by remember{ mutableStateOf(false) }
             val state by sessionManager.signalingClient.sessionStateFlow.collectAsState()
 
 
@@ -103,12 +106,15 @@ class MainActivity : ComponentActivity() {
 
                 }else if(onCameraViewScreen){
                   CameraViewScreen(CameraViewModel(carmanager.carCamera))
-                }else{
+                }else if(onCarScreen){
+                  CarScreen(carScreenViewModel(carmanager))
+                }else {
                   SerialComScreen(
                     SerialComViewModel(serialComManager),
                     { onJoyStickScreen = true },
                     { onStateBarScreen = true },
-                    { onCameraViewScreen=true})
+                    { onCameraViewScreen=true},
+                    {onCarScreen=true})
 
                 }
               }

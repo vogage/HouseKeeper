@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import io.getstream.log.taggedLogger
 import io.getstream.webrtc.sample.compose.car.Camera.CameraUIState
 import io.getstream.webrtc.sample.compose.car.JoyStick.MyJoyStickUiState
+import io.getstream.webrtc.sample.compose.car.JoyStick.MyJoyStickViewModel
 import io.getstream.webrtc.sample.compose.car.JoyStick.getPosition
 import io.getstream.webrtc.sample.compose.car.StateBar.StateBarData
 import kotlinx.coroutines.Dispatchers
@@ -31,6 +32,7 @@ class carScreenViewModel(
   val cameraUiState: StateFlow<CameraUIState> = _cameraUiState
   private val scope=viewModelScope
 
+  val myJoyStickViewModel = MyJoyStickViewModel(carManager.serialCom)
   fun changeVolume(vol:Float){
     _uiStateBar.update { it-> it.copy(batteryVolume = vol)}
   }

@@ -36,7 +36,8 @@ fun SerialComScreen(
    viewModel: SerialComViewModel,
     onJoyStickScreenOpen:()->Unit,
     onStateBarScreenOpen:()->Unit,
-    onCameraViewScreenOpen:()->Unit
+    onCameraViewScreenOpen:()->Unit,
+    onCarScreenOpen:()->Unit
 ){
   val uiState by viewModel.uiState.collectAsState()
 
@@ -56,6 +57,9 @@ fun SerialComScreen(
     }
     Button(onClick = {onJoyStickScreenOpen.invoke()}) {
       Text(text = "JoyStick")
+    }
+    Button(onClick = {onCarScreenOpen.invoke() }) {
+      Text(text="carScreen")
     }
     Button(onClick = {viewModel.initial()}) {
       Text(text = "initial")
